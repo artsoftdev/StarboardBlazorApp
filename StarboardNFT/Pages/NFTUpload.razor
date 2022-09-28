@@ -1,0 +1,718 @@
+﻿@page "/nft"
+
+@using System.IO
+@using System.Text
+@using System.Linq
+@using System.Threading
+@using Microsoft.AspNetCore.Hosting
+
+@using StarboardNFT.Models;
+@using StarboardNFT.Data;
+@using Nethereum.Web3;
+@using Nethereum.Web3.Accounts;
+@using Smart_contracts.Contracts.Starboard721;
+@using Nethereum.UI
+
+@inject Microsoft.Extensions.Configuration.IConfiguration config;
+@inject ApplicationDbContext dbContext;
+@inject Blazored.LocalStorage.ILocalStorageService localStore;
+@inject NavigationManager NavigationManager;
+
+@inject IEthereumHostProvider _metamaskHostProvider;
+@inject IJSRuntime JsRunTime;
+
+@inherits OwningComponentBase<NFTService>
+
+<main>
+    @if (form_step < 3)
+    {
+        <section>
+            <div class="container" style="margin-top: 50px;">
+                <div class="row">
+                    <div class="col-lg-7 mb-3">
+                        <div class="col__wrapper">
+                            <h2>
+                                Create Media
+                            </h2>
+                            <div class="form__z__wrapper">
+                                @if (@form_step == 1)
+                                {
+                                    <!-- form__z__wrapper--1 -->
+                                    <div class="form__z__wrapper--1">
+                                        <h4 class="form__z__wrapper--title my-3 my-md-5">
+                                            Upload
+                                        </h4>
+                                        <div class="card bg_transparent">
+                                            <div class="card__wrapper">
+                                                <div class="card-header p-0">
+                                                    <!-- Nav tabs -->
+                                                    <ul class="nav nav-tabs form__z__wrapper--tabs">
+                                                        <li class="nav-item px-2">
+                                                            <a class="nav-link p-1 active" data-toggle="tab"
+                                                               href="#Image">Image</a>
+                                                        </li>
+                                                        <li class="nav-item px-2">
+                                                            <a class="nav-link p-1" data-toggle="tab"
+                                                               href="#Video">Video</a>
+                                                        </li>
+                                                        <li class="nav-item px-2">
+                                                            <a class="nav-link p-1" data-toggle="tab"
+                                                               href="#Audio">Audio</a>
+                                                        </li>
+                                                        <li class="nav-item px-2">
+                                                            <a class="nav-link p-1" data-toggle="tab"
+                                                               href="#Text">Text</a>
+                                                        </li>
+                                                        <li class="nav-item px-2">
+                                                            <a class="nav-link p-1" data-toggle="tab"
+                                                               href="#File">File</a>
+                                                        </li>
+                                                    </ul>
+                                                </div>
+
+                                                <div class="card-body">
+                                                    <!-- Tab panes -->
+                                                    <div class="tab-content">
+                                                        <div class="tab-pane px-0 active container" id="Image">
+                                                            @if (@file_extensions == "image" && @file_name != null)
+                                                            {
+                                                                <label for="image_uploader" class="file__draggable p-3 p-md-5 w-100 text-center">
+                                                                    @file_name
+                                                                </label>
+                                                            }
+                                                            else
+                                                            {
+                                                                <label for="image_uploader" class="file__draggable p-3 p-md-5 w-100 text-center">
+                                                                    You can drag and drop your file here. <br>
+                                                                    .png, .jpg, and .gif are supported
+                                                                </label>
+                                                            }
+                                                            <div style="display: none;">
+                                                                <InputFile OnChange="@SingleUpload" name="image_uploader" accept=".png,.jpg,.gif" id="image_uploader" />
+                                                            </div>
+                                                        </div>
+                                                        <div class="tab-pane px-0 container" id="Video">
+                                                            @if (@file_extensions == "video" && @file_name != null)
+                                                            {
+                                                                <label for="video_uploader" class="file__draggable p-3 p-md-5 w-100 text-center">
+                                                                    @file_name
+                                                                </label>
+                                                            }
+                                                            else
+                                                            {
+                                                                <label for="video_uploader" class="file__draggable p-3 p-md-5 w-100 text-center">
+                                                                    You can drag and drop your file here.<br>
+                                                                    .mp4, and .mov are supported
+                                                                </label>
+                                                            }
+                                                            <div style="display: none;">
+                                                                <InputFile OnChange="@SingleUpload" name="video_uploader" accept=".mp4, .mov" id="video_uploader" />
+                                                            </div>
+                                                        </div>
+                                                        <div class="tab-pane px-0 container" id="Audio">
+                                                            @if (@file_extensions == "audio" && @file_name != null)
+                                                            {
+                                                                <label for="audio_uploader" class="file__draggable p-3 p-md-5 w-100 text-center">
+                                                                    @file_name
+                                                                </label>
+                                                            }
+                                                            else
+                                                            {
+                                                                <label for="audio_uploader" class="file__draggable p-3 p-md-5 w-100 text-center">
+                                                                    You can drag and drop your file here.<br>
+                                                                    .mp3, and .wav are supported
+                                                                </label>
+                                                            }
+                                                            <div style="display: none;">
+                                                                <InputFile OnChange="@SingleUpload" name="audio_uploader" accept=".mp3, .wav" id="audio_uploader" />
+                                                            </div>
+                                                        </div>
+                                                        <div class="tab-pane px-0 container" id="Text">
+                                                            @if (@file_extensions == "text" && @file_name != null)
+                                                            {
+                                                                <label for="text_uploader" class="file__draggable p-3 p-md-5 w-100 text-center">
+                                                                    @file_name
+                                                                </label>
+                                                            }
+                                                            else
+                                                            {
+                                                                <label for="text_uploader" class="file__draggable p-3 p-md-5 w-100 text-center">
+                                                                    You can drag and drop your file here.<br>
+                                                                    .txt, and .md are supported
+                                                                </label>
+                                                            }
+                                                            <div style="display: none;">
+                                                                <InputFile OnChange="@SingleUpload" name="text_uploader" accept=".txt, .md" id="text_uploader" />
+                                                            </div>
+                                                        </div>
+                                                        <div class="tab-pane px-0 container" id="File">
+                                                            @if (@file_extensions == "application" && @file_name != null)
+                                                            {
+                                                                <label for="file_uploader" class="file__draggable p-3 p-md-5 w-100 text-center">
+                                                                    @file_name
+                                                                </label>
+                                                            }
+                                                            else
+                                                            {
+                                                                <label for="file_uploader" class="file__draggable p-3 p-md-5 w-100 text-center">
+                                                                    You can drag and drop your file here.<br>
+                                                                    .pdf, psd, and ai are supported
+                                                                </label>
+                                                            }
+                                                            <div style="display: none;">
+                                                                <InputFile OnChange="@SingleUpload" name="file_uploader" accept=".pdf, .psd, .ai" id="file_uploader" />
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div class="card-footer">
+                                                    <div class="d-flex justify-content-between flex-wrap p-0">
+                                                        @if (success == false)
+                                                        {
+                                                            <h5 style=" margin: 0px; padding-top: 10px; font-size: 12px; font-weight: 500; color: rgb(243, 79, 79);">@UnSupportedFile</h5>
+                                                        }
+                                                        <button id="form__z__wrapper--back" class="btn btn-dark rounded-0" @onclick="(() => OnBack())">
+                                                            Back
+                                                        </button>
+                                                        <button id="form__z__wrapper--continue"
+                                                                class="btn btn-dark rounded-0" @onclick="(() => OnContinue())">
+                                                            Continue
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                }
+                                @if (@form_step == 2)
+                                {
+                                    <!-- form__z__wrapper--2 -->
+                                    <div class="form__z__wrapper--2">
+                                        <h4 class="form__z__wrapper--title my-3 my-md-5">
+                                            Add information
+                                        </h4>
+                                        <div class="card bg_transparent">
+                                            <div class="card__wrapper">
+                                                <div class="card-body">
+                                                    <form action="" method="post">
+                                                        <div class="form-group">
+                                                            <label for="" class="form-label">Name</label>
+                                                            <input type="text" @bind-value="title" @bind-value:event="oninput" placeholder="Enter Name" class="form-control bg_darkblack form__custom__control">
+                                                            <h5 style=" margin: 0px; padding-top: 10px; font-size: 12px; font-weight: 500; color: rgb(243, 79, 79);">@requiredTitle</h5>
+                                                        </div>
+                                                        <div class="form-group">
+                                                            <label for="" class="form-label">Description</label>
+                                                            <textarea name="" placeholder="Enter Description" @bind="@description" id="" style="height: 100px;" class="w-100 bg_darkblack form__custom__control form-control"></textarea>
+                                                        </div>
+                                                        <div class="form-group">
+                                                            <label for="" class="form-label">Category</label>
+                                                            <div class="mb-0 pb-0 form_custom_group_sb">
+                                                                <select class="form-control w_100_less_sm" name="" @onchange="@OnChangeCategory">
+                                                                    @foreach (var category in categories)
+                                                                    {
+                                                                        <option value="@category.EnumValue">@category.EnumName</option>
+                                                                    }
+                                                                </select>
+                                                            </div>
+                                                        </div>
+                                                    </form>
+                                                </div>
+                                                <div class="card-footer">
+                                                    <div class="d-flex justify-content-between flex-wrap p-0">
+                                                        <button id="form__z__wrapper--back" class="btn btn-dark rounded-0" @onclick="(() => OnBack())">
+                                                            Back
+                                                        </button>
+                                                        <button id="form__z__wrapper--continue"
+                                                                class="btn btn-dark rounded-0" @onclick="(() => OnContinue())">
+                                                            Continue
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                }
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-5 mb-3">
+                        <div class="col__wrapper">
+                            <h4 class="mb-2 mb-md-4">Preview</h4>
+                            <div class="form__z__preview__wrapper">
+
+                                @if (!@success)
+                                {
+                                    <div class="card bg_transparent form__z__preview__wrapper--card">
+                                        <div class="card__wrapper">
+                                            <div class="card-header p-2 p-md-4"></div>
+                                            <div class="card-body card_body_loader p-2 p-md-4"></div>
+
+                                            <div class="card-footer p-2 p-md-4"></div>
+                                            <div class="card-footer p-2 p-md-4"></div>
+                                        </div>
+
+                                    </div>
+                                }
+                                else
+                                {
+
+                                    <div class="card bg_transparent form__z__wrapper mt-2 mt-md-4">
+                                        <div class="card__wrapper">
+
+                                            @if (@file_extensions == "image")
+                                            {
+                                                <div class="file__output__wrapper">
+                                                    <img src="@previewSrc" alt="" class="img_object_cover rounded-0 card-img border-0 h-100 w-100">
+                                                </div>
+                                            }
+                                            else if (@file_extensions == "video")
+                                            {
+                                                <div class="file__output__wrapper">
+                                                    <video src="@previewSrc" class="img_object_cover rounded-0 card-img border-0 h-100 w-100" muted autoplay></video>
+                                                </div>
+                                            }
+                                            else if (@file_extensions == "audio")
+                                            {
+                                                <div class="file__output__wrapper">
+                                                    <div class="audio__play__wrapper d-flex justify-content-around align-items-center flex-column w-100 h-100">
+                                                        <i class="fas fa-music  fa-6x text-white-50 "></i>
+                                                        <button onclick="AudioToggle(this)"
+                                                                class="audio__play btn bg_darkblack">
+                                                            <i class="fas fa-play"></i>
+                                                            <i class="fas fa-pause"></i>
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            }
+                                            else if (@file_extensions == "text")
+                                            {
+                                                <div class="file__output__wrapper" style="overflow-y: auto">
+                                                    <div class="text__output p-3">
+                                                        @if (!string.IsNullOrEmpty(previewSrc))
+                                                            @previewSrc
+                                                    </div>
+                                                </div>
+                                            }
+                                            else if (@file_extensions == "application")
+                                            {
+                                                <div class="file__output__wrapper" style="overflow-y: auto">
+                                                    <div class="file__output p-3 h-100 d-flex justify-content-center align-items-center">
+                                                        <i class="fas fa-file-archive text-white-50 fa-5x    "></i>
+                                                    </div>
+                                                </div>
+                                            }
+                                            <div class="card-body">
+                                                @if (!string.IsNullOrEmpty(@title))
+                                                {
+                                                    <strong>@title</strong>
+                                                }
+                                                else
+                                                {
+                                                    <strong> Your Title here</strong>
+                                                }
+
+                                                <div class="created__user">
+                                                    <span class="text-white-50">Created by</span> <span class="px-2">
+                                                        <i class="fas fa-user  text-info  "></i> @shortAddr
+                                                    </span>
+                                                </div>
+                                            </div>
+                                            <footer class="card-footer p-3 p-md-4">
+                                            </footer>
+                                        </div>
+
+                                    </div>
+                                }
+
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    }
+    else
+    {
+
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-5 mb-3">
+                    <div class="col__wrapper ">
+                        <h2>
+                            Create Media
+                        </h2>
+                        <div class="card bg_transparent form__z__wrapper mt-2 mt-md-4">
+                            <div class="card__wrapper">
+                                @if (@file_extensions == "image")
+                                {
+                                    <div class="file__output__wrapper">
+                                        <img src="@previewSrc" alt="" class="img_object_cover rounded-0 card-img border-0 h-100 w-100">
+                                    </div>
+                                }
+                                else if (@file_extensions == "video")
+                                {
+                                    <div class="file__output__wrapper">
+                                        <video src="@previewSrc" class="img_object_cover rounded-0 card-img border-0 h-100 w-100" muted autoplay></video>
+                                    </div>
+                                }
+                                else if (@file_extensions == "audio")
+                                {
+                                    <div class="file__output__wrapper">
+                                        <div class="audio__play__wrapper d-flex justify-content-around align-items-center flex-column w-100 h-100">
+                                            <i class="fas fa-music  fa-6x text-white-50 "></i>
+                                            <button onclick="AudioToggle(this)"
+                                                    class="audio__play btn bg_darkblack">
+                                                <i class="fas fa-play"></i>
+                                                <i class="fas fa-pause"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                }
+                                else if (@file_extensions == "text")
+                                {
+                                    <div class="file__output__wrapper" style="overflow-y: auto">
+                                        <div class="text__output p-3">
+                                            @if (!string.IsNullOrEmpty(previewSrc))
+                                                @previewSrc
+                                        </div>
+                                    </div>
+                                }
+                                else if (@file_extensions == "application")
+                                {
+                                    <div class="file__output__wrapper" style="overflow-y: auto">
+                                        <div class="file__output p-3 h-100 d-flex justify-content-center align-items-center">
+                                            <i class="fas fa-file-archive text-white-50 fa-5x    "></i>
+                                        </div>
+                                    </div>
+                                }
+                                <div class="card-body">
+                                    @if (!string.IsNullOrEmpty(title))
+                                    {
+                                        <strong>@title</strong>
+                                    }
+                                    else
+                                    {
+                                        <strong> Your Title here</strong>
+                                    }
+
+                                    <div class="created__user">
+                                        <span class="text-white-50">Created by</span> <span class="px-2">
+                                            <i class="fas fa-user  text-info  "></i> @shortAddr
+                                        </span>
+                                    </div>
+                                </div>
+                                <footer class="card-footer p-3 p-md-4">
+                                </footer>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-7 h-auto mb-3">
+                    @if (@form_step == 3)
+                    {
+                        <div class="col__wrapper h-100 row justify-content-center align-items-center">
+                            <div class="col-10 col-md-9 col-lg-8">
+                                <p class="my-3 my-md-4 text-white-50" style="text-align: center;">
+                                    You are about to release <span class="text-white user__name">@title</span> to the world.
+                                </p>
+                                <div class="w-100 text-center">
+                                    <button class="btn btn-dark bg_darkblack border-0 rounded-0 px-5 py-2 mr-2" @onclick="(() => OnBack())">
+                                        Back
+                                    </button>
+                                    <button class="btn btn-dark bg_darkblack border-0 rounded-0 px-3 py-2" @onclick="(() => OnPublish())">
+                                        Finalize & Publish
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                    else if (@form_step == 4 && publishedID == Guid.Empty)
+                    {
+                        <div class="col__wrapper h-100 row justify-content-center align-items-center">
+                            <div class="col-10 col-md-9 col-lg-8">
+                                <span class="reject__icon d-block text-center h1">
+                                    !
+                                </span>
+                                <p class="my-3 my-md-4 text-white-50">
+                                    It looks like the transition was rejected in your wallet. Try again?
+                                </p>
+                                <div class="w-100 text-center">
+                                    <button class="btn btn-dark bg_darkblack border-0 rounded-0 p-3 px-md-4">
+                                        Retry
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                    else if (@form_step == 4 && publishedID != Guid.Empty)
+                    {
+                        <div class="col__wrapper h-100 row justify-content-center align-items-center">
+                            <div class="col-10 col-md-9 col-lg-8">
+                                <span class="d-block text-center ">
+                                    <i class="fas fa-check-circle fa-10x  text-success  "></i>
+                                </span>
+                                <p class="my-3 my-md-4 text-center">
+                                    <strong class="text-success"> NFT Successfully Created</strong>
+                                </p>
+                                <div class="w-100 text-center">
+                                    <button class="btn btn-dark bg_darkblack border-0 rounded-0 px-3 py-2 mr-2" @onclick="@goBackToPortfolio">
+                                        View NFT
+                                    </button>
+                                    <button class="btn btn-dark bg_darkblack border-0 rounded-0 px-3 py-2" @onclick="@OnSellNFT">
+                                        Sell NFT
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    }
+</main>
+
+@code {
+    NFT NftUploadInfo = new NFT();
+
+    public string title { get; set; }
+    string description { get; set; }
+    string file_name { get; set; }
+    string file_type { get; set; }
+    string file_extensions { get; set; }
+    byte[] file_content { get; set; }
+    bool success { get; set; }
+    Guid publishedID { get; set; }
+    string previewSrc { get; set; }
+    string ethAddress { get; set; }
+    int form_step { get; set; }
+    public string shortAddr { get; set; }
+    string requiredTitle { get; set; }
+    string UnSupportedFile { get; set; }
+
+    public NFT nft = new NFT();
+
+    private static Web3 web3;
+    private static Starboard721Service service;
+
+    public class EnumCategories
+    {
+        public NFT.Categories EnumValue { get; set; }
+        public string EnumName { get; set; }
+    }
+
+    // list for the dropdown
+    List<EnumCategories> categories { get; set; } = new List<EnumCategories>();
+
+    protected async override Task OnInitializedAsync()
+    {
+        // load the list
+
+        foreach (NFT.Categories item in Enum.GetValues(typeof(NFT.Categories)))
+        {
+            categories.Add(new EnumCategories { EnumName = item.ToString(), EnumValue = item });
+        }
+
+        categories.RemoveAt(0);
+
+        StateHasChanged();
+    }
+
+    protected async override Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            ethAddress = await localStore.GetItemAsync<string>("address");
+            if (!string.IsNullOrEmpty(ethAddress))
+            {
+                shortAddr = ethAddress.Substring(0, 6) + "..." + ethAddress.Substring(38);
+            }
+            form_step = 1;
+            StateHasChanged();
+        }
+    }
+
+    private async Task SingleUpload(InputFileChangeEventArgs e)
+    {
+        MemoryStream ms = new MemoryStream();
+        //accept=".png,.jpg,.gif"
+        file_name = e.File.Name;
+        file_type = e.File.ContentType;
+
+        System.IO.FileInfo fi = new System.IO.FileInfo(file_name);
+        var file_extension = fi.Extension;
+
+        success = false;
+
+        if (file_type.StartsWith("image/"))
+        {
+            if (file_extension == ".png" || file_extension == ".jpg" || file_extension == ".gif")
+            {
+                success = true;
+                file_extensions = "image";
+            }
+        }
+        else if (file_type.StartsWith("video/"))
+        {
+            if (file_extension == ".mp4" || file_extension == ".mov")
+            {
+                success = true;
+                file_extensions = "video";
+            }
+        }
+        else if (file_type.StartsWith("audio/"))
+        {
+            if (file_extension == ".mp3" || file_extension == ".wav")
+            {
+                success = true;
+                file_extensions = "audio";
+            }
+        }
+        else if (file_type.StartsWith("text/"))
+        {
+            if (file_extension == ".txt" || file_extension == ".md")
+            {
+                success = true;
+                file_extensions = "text";
+            }
+        }
+        else if (file_type.StartsWith("application/"))
+        {
+            if (file_extension == ".pdf" || file_extension == ".psd" || file_extension == ".ai")
+            {
+                success = true;
+                file_extensions = "application";
+            }
+        }
+
+        if (success == true)
+        {
+            UnSupportedFile = "";
+        }
+        else
+        {
+            UnSupportedFile = "Unsupported file type.";
+            StateHasChanged();
+            return;
+        }
+
+        long maxAllowedSize = 40000000;
+        await e.File.OpenReadStream(maxAllowedSize).CopyToAsync(ms);
+        file_content = ms.ToArray();
+
+
+
+        if (file_type.StartsWith("text/"))
+        {
+            previewSrc = Encoding.UTF8.GetString(file_content, 0, file_content.Length);
+        }
+        else
+        {
+            string base64 = Convert.ToBase64String(file_content);
+            previewSrc = string.Format("data:{0};base64,{1}", file_type, base64);
+        }
+
+        StateHasChanged();
+    }
+
+    async Task OnPublish()
+    {
+        string starboard721ContractAddress = config.GetSection("ContractSettings")["Starboard721ContractAddress"].ToString();
+        string rpc = config.GetSection("ContractSettings")["RPC"].ToString();
+        string privateKey = config.GetSection("ContractSettings")["PrivateKey"].ToString();
+
+        var account = new Nethereum.Web3.Accounts.Account(privateKey);
+
+        //web3 = new Nethereum.Web3.Web3("0x0d71F8e68F9486125faEC2f5B7Bd466e53d5C66C", rpc);
+        var SelectedAccount = await _metamaskHostProvider.EnableProviderAsync();
+        web3 = await _metamaskHostProvider.GetWeb3Async();
+
+        //var contractHandler = web3.Eth.GetContractTransactionHandler<Smart_contracts.Contracts.Starboard721.ContractDefinition.MintStarboard721Function>();
+        //var TransactionHash = await contractHandler.SendRequestAsync(starboard721ContractAddress, new Smart_contracts.Contracts.Starboard721.ContractDefinition.MintStarboard721Function()
+        //{
+        //    Num = 3,
+        //    TokenURI = "https://nft.starboard.org/NFTs/" + file_name,
+        //    AmountToSend = 0
+        //});
+        //var contractHandler = web3.Eth.GetContractTransactionHandler<Smart_contracts.Contracts.Starboard721.ContractDefinition.MintStarboard721Function>();
+        //var TransactionHash = await contractHandler.SendRequestAndWaitForReceiptAsync(starboard721ContractAddress, new Smart_contracts.Contracts.Starboard721.ContractDefinition.MintStarboard721Function() { Num = 1, TokenURI = "https://nft.starboard.org/NFTs/" + file_name});
+        var tmpWeb3 = await JsRunTime.InvokeAsync<string>("WalletLib.SignInWalletConnect", 1, "https://nft.starboard.org/NFTs/" + file_name);
+        service = new Starboard721Service(web3, starboard721ContractAddress);
+        //var result = await service.MintStarboard721RequestAndWaitForReceiptAsync(new Smart_contracts.Contracts.Starboard721.ContractDefinition.MintStarboard721Function() { Num = 1, TokenURI = "https://nft.starboard.org/NFTs/" + file_name, Gas = 400000 });
+
+        Guid userProfileId = await Service.GetUserProfileId(ethAddress);
+
+        NftUploadInfo.Title = title;
+        NftUploadInfo.Description = description;
+        NftUploadInfo.Category = nft.Category;
+        if (nft.Category == NFT.Categories.AllItems)
+            NftUploadInfo.Category = NFT.Categories.Art;
+        NftUploadInfo.FileName = file_name;
+        NftUploadInfo.FileType = file_type;
+        NftUploadInfo.FileContent = file_content;
+        NftUploadInfo.UserProfileId = userProfileId;
+        NftUploadInfo.TotalNumberOfMintedNFT = 1;
+
+        publishedID = await Service.OnNFTPublish(NftUploadInfo);
+        form_step++;
+
+        StateHasChanged();
+    }
+
+    void OnChangeTitle()
+    {
+        StateHasChanged();
+    }
+
+    void goBackToPortfolio()
+    {
+        NavigationManager.NavigateTo("portfolio");
+    }
+
+    void OnSellNFT()
+    {
+        NavigationManager.NavigateTo("nftdataupload/" + publishedID);
+    }
+
+    void OnContinue()
+    {
+        if (form_step == 1 && !string.IsNullOrEmpty(UnSupportedFile))
+        {
+            return;
+        }
+        else if (form_step == 2 && string.IsNullOrEmpty(title))
+        {
+            requiredTitle = "Name is required";
+            StateHasChanged();
+            return;
+        }
+        else requiredTitle = "";
+
+        form_step++;
+        StateHasChanged();
+    }
+
+    void OnBack()
+    {
+        if (form_step > 1)
+        {
+            form_step--;
+            StateHasChanged();
+        }
+    }
+
+    void OnChangeCategory(ChangeEventArgs e)
+    {
+        string selectedCategory = e.Value.ToString();
+
+        if (selectedCategory == "Art")
+            nft.Category = NFT.Categories.Art;
+        else if (selectedCategory == "Game")
+            nft.Category = NFT.Categories.Game;
+        else if (selectedCategory == "Photography")
+            nft.Category = NFT.Categories.Photography;
+        else if (selectedCategory == "Music")
+            nft.Category = NFT.Categories.Music;
+        else if (selectedCategory == "Video")
+            nft.Category = NFT.Categories.Video;
+    }
+}

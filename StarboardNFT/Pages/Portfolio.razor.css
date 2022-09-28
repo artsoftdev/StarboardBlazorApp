@@ -1,0 +1,61 @@
+@media (min-width: 700px) {
+    section.standard__marketplace .card__img {
+        height: 350px;
+    }
+}
+
+@media (min-width: 992px) {
+    section.company__logo .company__logo--list {
+        margin-left: -2rem !important;
+        margin-right: -2rem !important;
+    }
+}
+
+@media (max-width: 700px) {
+    .standard__marketplace h2 {
+        font-size: 2rem;
+    }
+
+    .standard__marketplace h4 {
+        font-size: 1rem;
+    }
+}
+
+@media (min-width: 700px) {
+    section.standard__marketplace .card__img {
+        height: 350px;
+    }
+}
+
+.bg_transparent,
+.bg_transparent:focus,
+.bg_transparent:active,
+.bg_transparent:hover {
+    background: transparent;
+}
+
+
+section.start__collecting {
+    min-height: 600px;
+}
+
+.start__collecting .col__wrapper {
+    position: relative;
+}
+
+@media (min-width: 992px) {
+    section.start__collecting {
+        height: 600px;
+    }
+
+    .start__collecting .col__wrapper::before {
+        content: "";
+        position: absolute;
+        width: 100%;
+        height: calc(100% + 5rem);
+        top: -5rem;
+        right: -3rem;
+        background: url("../images/home/blue_orr.png") right top/60% 100% no-repeat;
+        z-index: -1;
+    }
+}

@@ -1,0 +1,159 @@
+// variable........
+$white: #ffffff !important;
+$text_7: #777e90 !important;
+$text_70: #707070 !important;
+$tf: transparent !important;
+$text_3: #353945 !important;
+$black: #000000 !important;
+$text_14: #141416 !important;
+$text_23: #23262f !important;
+$text_white_50: rgba(255, 255, 255, 0.5) !important;
+$text_e6: #E6E8EC!important;
+$text_fc: #FCFCFD!important;
+[data-theme="dark"] {
+  background-color: $text_14;
+  color: #eee;
+  header {
+    background-color: $text_14;
+  }
+  footer {
+    @media (max-width: 767px) {
+      background: $text_23;
+    }
+  }
+  .bg-black {
+    background-color: $white;
+  }
+  .bg-white {
+    background-color: $black;
+  }
+  .bg_dark_mode_14{
+    background: $text_14;
+  }
+  .text-black-50,
+  a.btn.text-black-50 {
+    color: $text_white_50;
+  }
+  .bg_f4 {
+    background: $text_23;
+  }
+  .bg_dark_mode_23{
+    background: $text_23;
+  }
+  
+  .btn_wrapper button.bg_dark_mode_fc{
+    background: $text_fc;
+    color: $text_23;
+  }
+  //............ text color.................
+  .text-black {
+    color: $white;
+  }
+  .text-white{
+    color: $black;
+  }
+  .text_23 {
+    color: $white;
+  }
+  .text_3f {
+    color: $white;
+  }
+  .text_dark_fill_white{
+    fill: $white;
+  }
+  .text_3f_placeholder::placeholder {
+    color: $text_7;
+  }
+
+  .text_14 {
+    color: $white;
+  }
+  .text-dark {
+    color: $text_7;
+  }
+  .text_dark_mode_23{
+    color: $text_23;
+  }
+  // .nav-link
+  .nav-link {
+    color: $text_7;
+  }
+  // input form-control
+  .form-control {
+    background: $tf;
+  }
+  .form-control:not(.border-0) {
+    border-color: $text_3;
+  }
+  .form-group > .border {
+    border-color: $text_3;
+  }
+  input,
+  select,
+  textarea {
+    color: $white;
+  }
+  .btn:not(.bg_df) {
+    border-color: $text_3;
+    color: $white;
+  }
+  .btn-light {
+    background: $text_23;
+  }
+
+  // border
+  .border-bottom,
+  .border-top {
+    border-color: $text_3;
+  }
+  .border{
+    border-color: $text_3;
+  }
+  .dropdown_custom_heart_wrapper li:not(:last-child){
+    border-color: $text_3;
+  }
+
+  // .dropdown-menu.....
+  .dropdown-menu:not(.bg_transparent) {
+    background: $black;
+    color: $text_7;
+    .dropdown-item,
+    .dropdown-item {
+      background: $black;
+      color: $white;
+      &:focus,
+      &:hover {
+        background: $text_14;
+        color: $text_7;
+      }
+    }
+  }
+  .custom_nav_dropdown_wraper::after {
+    border-color: transparent transparent #000000 transparent !important;
+  }
+  // [data-notify-list]
+  [data-notify-list]::before {
+    background: $white;
+    color: $black;
+  }
+  // list_group_hover
+  .list_group_hover > * {
+    cursor: pointer;
+    transition: 0.3s;
+    &:hover {
+      background: $text_23;
+    }
+  }
+  .filter_aside {
+    background: $text_23;
+  }
+  .nav-tabs{
+    .active{
+      background: $text_e6;
+      color: $text_23;
+    }
+  }
+  .dark_shadow_off{
+    box-shadow: none!important;
+  }
+}

@@ -1,0 +1,188 @@
+[data-theme="dark"] {
+  background-color: #141416 !important;
+  color: #eee;
+}
+
+[data-theme="dark"] header {
+  background-color: #141416 !important;
+}
+
+@media (max-width: 767px) {
+  [data-theme="dark"] footer {
+    background: #23262f !important;
+  }
+}
+
+[data-theme="dark"] .bg-black {
+  background-color: #ffffff !important;
+}
+
+[data-theme="dark"] .bg-white {
+  background-color: #000000 !important;
+}
+
+[data-theme="dark"] .bg_dark_mode_14 {
+  background: #141416 !important;
+}
+
+[data-theme="dark"] .text-black-50,
+[data-theme="dark"] a.btn.text-black-50 {
+  color: rgba(255, 255, 255, 0.5) !important;
+}
+
+[data-theme="dark"] .bg_f4 {
+  background: #23262f !important;
+}
+
+[data-theme="dark"] .bg_dark_mode_23 {
+  background: #23262f !important;
+}
+
+[data-theme="dark"] .btn_wrapper button.bg_dark_mode_fc {
+  background: #FCFCFD !important;
+  color: #23262f !important;
+}
+
+[data-theme="dark"] .text-black {
+  color: #ffffff !important;
+}
+
+[data-theme="dark"] .text-white {
+  color: #000000 !important;
+}
+
+[data-theme="dark"] .text_23 {
+  color: #ffffff !important;
+}
+
+[data-theme="dark"] .text_3f {
+  color: #ffffff !important;
+}
+
+[data-theme="dark"] .text_dark_fill_white {
+  fill: #ffffff !important;
+}
+
+[data-theme="dark"] .text_3f_placeholder::-webkit-input-placeholder {
+  color: #777e90 !important;
+}
+
+[data-theme="dark"] .text_3f_placeholder:-ms-input-placeholder {
+  color: #777e90 !important;
+}
+
+[data-theme="dark"] .text_3f_placeholder::-ms-input-placeholder {
+  color: #777e90 !important;
+}
+
+[data-theme="dark"] .text_3f_placeholder::placeholder {
+  color: #777e90 !important;
+}
+
+[data-theme="dark"] .text_14 {
+  color: #ffffff !important;
+}
+
+[data-theme="dark"] .text-dark {
+  color: #777e90 !important;
+}
+
+[data-theme="dark"] .text_dark_mode_23 {
+  color: #23262f !important;
+}
+
+[data-theme="dark"] .nav-link {
+  color: #777e90 !important;
+}
+
+[data-theme="dark"] .form-control {
+  background: transparent !important;
+}
+
+[data-theme="dark"] .form-control:not(.border-0) {
+  border-color: #353945 !important;
+}
+
+[data-theme="dark"] .form-group > .border {
+  border-color: #353945 !important;
+}
+
+[data-theme="dark"] input,
+[data-theme="dark"] select,
+[data-theme="dark"] textarea {
+  color: #ffffff !important;
+}
+
+[data-theme="dark"] .btn:not(.bg_df) {
+  border-color: #353945 !important;
+  color: #ffffff !important;
+}
+
+[data-theme="dark"] .btn-light {
+  background: #23262f !important;
+}
+
+[data-theme="dark"] .border-bottom,
+[data-theme="dark"] .border-top {
+  border-color: #353945 !important;
+}
+
+[data-theme="dark"] .border {
+  border-color: #353945 !important;
+}
+
+[data-theme="dark"] .dropdown_custom_heart_wrapper li:not(:last-child) {
+  border-color: #353945 !important;
+}
+
+[data-theme="dark"] .dropdown-menu:not(.bg_transparent) {
+  background: #000000 !important;
+  color: #777e90 !important;
+}
+
+[data-theme="dark"] .dropdown-menu:not(.bg_transparent) .dropdown-item,
+[data-theme="dark"] .dropdown-menu:not(.bg_transparent) .dropdown-item {
+  background: #000000 !important;
+  color: #ffffff !important;
+}
+
+[data-theme="dark"] .dropdown-menu:not(.bg_transparent) .dropdown-item:focus, [data-theme="dark"] .dropdown-menu:not(.bg_transparent) .dropdown-item:hover,
+[data-theme="dark"] .dropdown-menu:not(.bg_transparent) .dropdown-item:focus,
+[data-theme="dark"] .dropdown-menu:not(.bg_transparent) .dropdown-item:hover {
+  background: #141416 !important;
+  color: #777e90 !important;
+}
+
+[data-theme="dark"] .custom_nav_dropdown_wraper::after {
+  border-color: transparent transparent #000000 transparent !important;
+}
+
+[data-theme="dark"] [data-notify-list]::before {
+  background: #ffffff !important;
+  color: #000000 !important;
+}
+
+[data-theme="dark"] .list_group_hover > * {
+  cursor: pointer;
+  -webkit-transition: 0.3s;
+  transition: 0.3s;
+}
+
+[data-theme="dark"] .list_group_hover > *:hover {
+  background: #23262f !important;
+}
+
+[data-theme="dark"] .filter_aside {
+  background: #23262f !important;
+}
+
+[data-theme="dark"] .nav-tabs .active {
+  background: #E6E8EC !important;
+  color: #23262f !important;
+}
+
+[data-theme="dark"] .dark_shadow_off {
+  -webkit-box-shadow: none !important;
+          box-shadow: none !important;
+}
+/*# sourceMappingURL=dark-mode.css.map */

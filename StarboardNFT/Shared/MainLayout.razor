@@ -1,0 +1,864 @@
+﻿@inherits LayoutComponentBase
+
+@using Microsoft.AspNetCore.SignalR.Client
+
+@using StarboardNFT.Data;
+@using StarboardNFT.Models;
+
+@using Nethereum.UI;
+@inject IJSRuntime jsRuntime;
+@inject NavigationManager NavigationManager
+@inject Blazored.SessionStorage.ISessionStorageService sessionStorage;
+@inject Blazored.LocalStorage.ILocalStorageService localStore
+@inject IEthereumHostProvider _ethereumHostProvider;
+@inject NethereumAuthenticator  _nethereumAuthenticator;
+@inject NotificationsService NotificationService;
+@inject ProfileService ProfileService;
+
+@using Newtonsoft.Json;
+
+<RadzenDialog />
+<RadzenNotification />
+
+<header class="border-bottom py-2" @onclick="OnOutsideClick">
+    <div class="container-xxl">
+        <div class="row">
+            <div class="col-12">
+                <nav class="navbar navbar-expand-xl navbar-light px-0 position-relative">
+                    <a class="navbar-brand text-black" href="#">
+                        <img src="./img/notify_sturb.png" class="" alt="notify_sturb"
+                             style="width: 20px; height: 20px;">
+                        <span class="font_size_24 ">
+                            starboard
+                        </span>
+                    </a>
+                    <button class="navbar-toggler text-black d-xl-none order-3  border outline_0 shadow-0 focus_shadow_off order-xl-2"
+                            type="button" data-toggle="collapse" data-target="#collapsibleNavId"
+                            aria-controls="collapsibleNavId" aria-expanded="false" aria-label="Toggle navigation">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="21.333" style="margin-top: -5px;"
+                             height="10.667" viewBox="0 0 21.333 10.667">
+                            <g id="icons_Burger_Line" data-name="icons/Burger/Line"
+                               transform="translate(-5.333 -10.667)">
+                                <g id="burger_icon" data-name="burger icon" transform="translate(5.333 10.667)">
+                                    <path id="A57B52CD-8EF3-4BD6-8CDE-86DF9097FDD2"
+                                          d="M1.333,0a1.333,1.333,0,0,0,0,2.667H20A1.333,1.333,0,0,0,20,0Z"
+                                          fill="#777e90" />
+                                    <path id="_445E2689-24DD-4C54-9E57-CB61D90C1AA7"
+                                          data-name="445E2689-24DD-4C54-9E57-CB61D90C1AA7"
+                                          d="M1.333,0a1.333,1.333,0,0,0,0,2.667H20A1.333,1.333,0,0,0,20,0Z"
+                                          transform="translate(0 8)" fill="#777e90" />
+                                </g>
+                            </g>
+                        </svg>
+                    </button>
+                    <div class="collapse navbar-collapse order-3 order-xl-2 py-3 py-lg-0" id="collapsibleNavId">
+                        <ul class="list-unstyled m-0 p-0 d-flex d-md-none justify-content-center position-relative">
+                            <li class="nav-item d-inline">
+                                <button class="btn btn-muted btn-sm font_size_18 focus_shadow_off mx-2">
+                                    <svg xmlns="http://www.w3.org/2000/svg"
+                                         xmlns:xlink="http://www.w3.org/1999/xlink" width="26.018" height="25.071"
+                                         viewBox="0 0 26.018 25.071">
+                                        <defs>
+                                            <pattern id="pattern_icon_sm_device"
+                                                     preserveAspectRatio="xMidYMid slice" width="100%" height="100%"
+                                                     viewBox="0 0 256 256">
+                                                <image width="256" height="256"
+                                                       xlink:href="data:image/png;base64,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" />
+                                            </pattern>
+                                        </defs>
+                                        <rect id="icons8-alarm_1" data-name="icons8-alarm 1" width="26.018"
+                                              height="25.071" fill="url(#pattern_icon_sm_device)" />
+                                    </svg>
+                                </button>
+                            </li>
+                            <li class="nav-item d-inline mr-2">
+                                <button class="btn px-4 rounded-pill text_theme_black font_size_18 text-nowrap bg_df btn-sm">
+                                    Create
+                                </button>
+                            </li>
+                            <li class="nav-item d-inline">
+                                <button class="btn px-4 rounded-pill text_theme_black font_size_18 text-nowrap border btn-muted btn-sm">
+                                    Connect Wallet
+                                </button>
+                            </li>
+                        </ul>
+
+                        <form class="form-inline w_100_less_sm my-2 my-lg-0  mr-auto flex-grow-1 d-block d-md-none d-xl-block">
+                            <div class="form-group w-100 mb-0 position-relative">
+                                <i class="fas fa-search pl-2 font_size_12 text-primary input_search_icon position-absolute position_top_center"></i>
+                                <input class="form-control focus_shadow_off mr-sm-2 text_3f w-100 w_100_less_sm pl-4 font_size_12 text_3f_placeholder"
+                                       type="text" @bind="searchText" @bind:event="oninput" @onkeypress="Enter" placeholder="Search items, collections, and Accounts">
+                            </div>
+                        </form>
+
+                        <ul class="navbar-nav mt-2 mt-lg-0">
+                            <li class="nav-item">
+                                <a class="nav-link font_size_18 px-3 text-nowrap text-black" href="/foryou">
+                                    For
+                                    You
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link font_size_18 px-3 text-nowrap text-black" href="#">Following</a>
+                            </li>
+                            <li class="nav-item">
+                                <a href="#"
+                                   class="nav-link font_size_18 px-3 text-nowrap text-black" @onclick="(() => OnGoAuction())">
+                                    Explore
+                                </a>
+                            </li>
+                            <li class="nav-item dropdown">
+                                <a class="nav-link font_size_18 px-3 dropdown-toggle text-nowrap text-black custom_dropdown_toggle_icon"
+                                   href="#" id="dropdownId" data-toggle="dropdown" aria-haspopup="true"
+                                   aria-expanded="false">Resources</a>
+                                <div class="dropdown-menu py-0" aria-labelledby="dropdownId">
+                                    <a class="dropdown-item" href="#">Action 1</a>
+                                    <a class="dropdown-item" href="#">Action 2</a>
+                                    <a class="dropdown-item" href="./frequentask">FAQ</a>
+                                </div>
+                            </li>
+
+                        </ul>
+                    </div>
+                    <ul class="list-unstyled m-0 p-0 d-flex  order-2 order-xl-3 align-items-center  flex-grow-1 justify-content-end">
+                        <li class="nav-item d-none d-lg-flex d-xl-none  align-items-center mr-2">
+                            <form class="form-inline my-2 my-lg-0  mr-auto flex-grow-1">
+                                <div class="form-group w-100 mb-0 position-relative">
+                                    <i class="fas fa-search pl-2 font_size_12 text-primary input_search_icon position-absolute position_top_center"></i>
+                                    <input class="form-control focus_shadow_off mr-sm-2 text_3f w-100 pl-4 font_size_12 text_3f_placeholder"
+                                           type="text" placeholder="Search items, collections, and Accounts">
+                                </div>
+                            </form>
+                        </li>
+                        <li class="nav-item dropdown custom_dropdown_parent custom_dropdown_parent_lg_100 mr-2">
+                            <button data-toggle="dropdown"
+                                    class="btn nav-link btn-muted btn-sm font_size_18 focus_shadow_off border-0 dropdown-toggle focus_shadow_off mx-1 p-1 dropdown_toggle_after_off">
+                                <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"
+                                     width="26.018" height="25.071" viewBox="0 0 26.018 25.071">
+                                    <defs>
+                                        <pattern id="pattern_icon_lg_device" preserveAspectRatio="xMidYMid slice"
+                                                 width="100%" height="100%" viewBox="0 0 256 256">
+                                            <image width="256" height="256"
+                                                   xlink:href="data:image/png;base64,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" />
+                                        </pattern>
+                                    </defs>
+                                    <rect id="icons8-alarm_1" data-name="icons8-alarm 1" width="26.018"
+                                          height="25.071" fill="url(#pattern_icon_lg_device)" />
+                                </svg>
+                            </button>
+                            <div class="dropdown-menu border-0 dropdown-menu-right bg_transparent pointer_hide"
+                                 @onclick:stopPropagation="true" aria-labelledby="dropdownId">
+                                <div class="custom_nav_dropdown_wraper p-3 shadow-sm rounded_24 bg-white pointer_visible">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <h3 class="me-2 text_23">Notification</h3>
+                                        <button class="btn btn-primary rounded-pill py-1 btn-sm px-3 d-md-block d-none" @onclick='() => NavigationManager.NavigateTo("notifications")'>
+                                            See all
+                                        </button>
+                                    </div>
+                                    <ul class="list-group list_group_hoverable">
+                                        @if (@RecentNotification != null)
+                                        {
+                                            @foreach (var notification in @RecentNotification.Take(5))
+                                            {
+                                                <li class="list-group-item border-0 bg_transparent rounded_10 px-2">
+                                                    <div class="d-flex flex-wrap">
+                                                        @if (notification.NFTData == null)
+                                                        {
+                                                            <img src="" class="w_h_60 rounded_16 d-inline-block" alt="avatar">
+                                                        }
+                                                        else
+                                                        {
+                                                            <img src="data:image/gif;base64,@System.Convert.ToBase64String(notification.NFTData.NFT.FileContent)" class="w_h_60 rounded_16 d-inline-block" alt="avatar">
+                                                        }
+                                                        <div class="content_wrapper ml-3 flex-grow-1">
+                                                            <span class="text_14">@notification.Title</span>
+                                                            <br>
+                                                            <div class="d-flex justify-content-between align-items-center text_14">
+                                                                <span>@notification.Description</span>
+                                                                <span>
+                                                                    <svg xmlns="http://www.w3.org/2000/svg" width="12"
+                                                                         height="12" viewBox="0 0 12 12">
+                                                                        <rect id="new_icon_style_"
+                                                                              data-name="new icon (style)" width="12"
+                                                                              height="12" rx="6" fill="#3772ff" />
+                                                                    </svg>
+                                                                </span>
+                                                            </div>
+                                                            <span class="font_size_12 text_7">
+                                                                @notification.CreateDateTimeUtc.ToLocalTime()
+                                                            </span>
+                                                        </div>
+                                                    </div>
+                                                </li>
+                                            }
+                                        }
+                                    </ul>
+                                </div>
+                            </div>
+                        </li>
+                        @if (!string.IsNullOrEmpty(selected_account_addr))
+                        {
+                            <li class="nav-item d-inline-flex align-items-center mr-2">
+                                <button class="btn px-4 rounded-pill btn-primary font_size_18 text-nowrap  btn-sm dropdown_toggle_after_off" @onclick:stopPropagation="true" @onclick="(() => OnUploadWork())">
+                                    Upload
+                                </button>
+                            </li>
+                            <li class="nav-item dropdown custom_dropdown_parent custom_dropdown_parent_lg_100 mr-2">
+                                <div class="user_profile_head d-flex align-items-center border border_less_lg rounded-pill px-2 py-0">
+                                    <button class="btn nav-link btn-muted btn-sm font_size_18 focus_shadow_off border-0 dropdown-toggle focus_shadow_off mx-1 p-1 dropdown_toggle_after_off" @onclick="OnUserClick">
+                                        @if (@objProfileHeaderSettings.UserPhoto != null)
+                                        {
+                                            <img src="data:image/gif;base64,@System.Convert.ToBase64String(@objProfileHeaderSettings.UserPhoto)" class="w_h_40 rounded-circle" alt="circle_profile">
+                                        }
+                                        else
+                                        {
+                                            <img src="images/home/user.png" class="w_h_40 rounded-circle" alt="circle_profile">
+                                        }
+                                    </button>
+                                    @if (@bProfileVisible == true)
+                                    {
+                                        <div class="dropdown-menu border-0 dropdown-menu-right bg_transparent pointer_hide show" @onclick="OnProfileMenuClick" aria-labelledby="dropdownId">
+                                            <div class="custom_nav_dropdown_wraper p-3 shadow-sm rounded_24 bg-white pointer_visible"
+                                                 style="left: -111px;">
+                                                <div class="wrapper">
+
+                                                    <h4 class="text_23">
+                                                        @objProfileHeaderSettings.UserName
+                                                    </h4>
+                                                    <CopyToClipboardButton Text="@selected_account_addr" shortText="@shortAddr" />
+                                                    <div class="balance_box_wrapper p-3 shadow rounded_24">
+                                                        <div class="d-flex align-items-center">
+                                                            <svg class="mr-3" id="Group" xmlns="http://www.w3.org/2000/svg"
+                                                                 width="40" height="40" viewBox="0 0 40 40">
+                                                                <path id="Vector"
+                                                                      d="M20,40A20,20,0,1,0,0,20,20,20,0,0,0,20,40Z"
+                                                                      fill="#627eea" />
+                                                                <g id="Group-2" data-name="Group"
+                                                                   transform="translate(12 7)">
+                                                                    <path id="Vector-2" data-name="Vector"
+                                                                          d="M0,0V9.609l8.121,3.629Z"
+                                                                          transform="translate(8.123)"
+                                                                          fill="rgba(255,255,255,0.6)" />
+                                                                    <path id="Vector-3" data-name="Vector"
+                                                                          d="M8.123,0,0,13.238,8.123,9.609Z" fill="#fff" />
+                                                                    <path id="Vector-4" data-name="Vector"
+                                                                          d="M0,4.715v6.529L8.127,0Z"
+                                                                          transform="translate(8.123 14.75)"
+                                                                          fill="rgba(255,255,255,0.6)" />
+                                                                    <path id="Vector-5" data-name="Vector"
+                                                                          d="M8.123,11.244V4.713L0,0Z"
+                                                                          transform="translate(0 14.75)" fill="#fff" />
+                                                                    <path id="Vector-6" data-name="Vector"
+                                                                          d="M0,8.342,8.121,3.627,0,0Z"
+                                                                          transform="translate(8.123 9.611)"
+                                                                          fill="rgba(255,255,255,0.2)" />
+                                                                    <path id="Vector-7" data-name="Vector"
+                                                                          d="M0,3.627,8.123,8.342V0Z"
+                                                                          transform="translate(0 9.611)"
+                                                                          fill="rgba(255,255,255,0.6)" />
+                                                                </g>
+                                                            </svg>
+                                                            <div class="content_wrapper">
+                                                                <span class="font_size_12 text_7">
+                                                                    Balance
+                                                                </span>
+                                                                <h4 class="text_23">
+                                                                    @EthAmount
+                                                                </h4>
+
+                                                            </div>
+
+                                                        </div>
+                                                        <button class="btn w-100 btn-muted border rounded-pill focus_shadow_off font_size_14">
+                                                            Manage fun on Starboard
+                                                        </button>
+                                                    </div>
+
+                                                    <ul class="list-group mt-3">
+                                                        <li class="list-group-item border-top-0 border-right-0 border-left-0 border-bottom bg_transparent">
+                                                            <div class="d-flex flex-wrap align-items-center">
+                                                                <svg xmlns="http://www.w3.org/2000/svg" width="15"
+                                                                     class="mr-3" height="18.333" viewBox="0 0 15 18.333">
+                                                                    <g id="icons_User_Line" data-name="icons/User/Line"
+                                                                       transform="translate(-2.5 -0.833)">
+                                                                        <path id="Shape"
+                                                                              d="M7.5,1.667A5.833,5.833,0,0,0,1.667,7.5V9.167A.833.833,0,0,1,0,9.167V7.5a7.5,7.5,0,0,1,15,0V9.167a.833.833,0,0,1-1.667,0V7.5A5.833,5.833,0,0,0,7.5,1.667Z"
+                                                                              transform="translate(2.5 9.167)"
+                                                                              fill="#777e90" />
+                                                                        <path id="Shape-2" data-name="Shape"
+                                                                              d="M5,8.333A3.333,3.333,0,1,0,1.667,5,3.333,3.333,0,0,0,5,8.333ZM5,10A5,5,0,1,0,0,5,5,5,0,0,0,5,10Z"
+                                                                              transform="translate(5 0.833)" fill="#777e90"
+                                                                              fill-rule="evenodd" />
+                                                                    </g>
+                                                                </svg>
+                                                                <a href="./viewprofile" @onclick="OnProfileMenuItemClick" class="text-black font_size_14">My profile</a>
+                                                            </div>
+                                                        </li>
+                                                        <li class="list-group-item border-top-0 border-right-0 border-left-0 border-bottom bg_transparent">
+                                                            <div class="d-flex flex-wrap align-items-center">
+                                                                <svg xmlns="http://www.w3.org/2000/svg" width="15"
+                                                                     class="mr-3" height="18.333" viewBox="0 0 15 18.333">
+                                                                    <g id="icons_User_Line" data-name="icons/User/Line"
+                                                                       transform="translate(-2.5 -0.833)">
+                                                                        <path id="Shape"
+                                                                              d="M7.5,1.667A5.833,5.833,0,0,0,1.667,7.5V9.167A.833.833,0,0,1,0,9.167V7.5a7.5,7.5,0,0,1,15,0V9.167a.833.833,0,0,1-1.667,0V7.5A5.833,5.833,0,0,0,7.5,1.667Z"
+                                                                              transform="translate(2.5 9.167)"
+                                                                              fill="#777e90" />
+                                                                        <path id="Shape-2" data-name="Shape"
+                                                                              d="M5,8.333A3.333,3.333,0,1,0,1.667,5,3.333,3.333,0,0,0,5,8.333ZM5,10A5,5,0,1,0,0,5,5,5,0,0,0,5,10Z"
+                                                                              transform="translate(5 0.833)" fill="#777e90"
+                                                                              fill-rule="evenodd" />
+                                                                    </g>
+                                                                </svg>
+                                                                <a href="./useractivity" @onclick="OnProfileMenuItemClick" class="text-black font_size_14">My Activity</a>
+                                                            </div>
+                                                        </li>
+                                                        <li class="list-group-item bg_transparent border-top-0 border-right-0 border-left-0 border-bottom">
+                                                            <div class="d-flex flex-wrap align-items-center">
+                                                                <svg xmlns="http://www.w3.org/2000/svg" width="16.667"
+                                                                     class="mr-3" height="16.667"
+                                                                     viewBox="0 0 16.667 16.667">
+                                                                    <g id="icons_Image_Line" data-name="icons/Image/Line"
+                                                                       transform="translate(-1.667 -1.667)">
+                                                                        <path id="Shape"
+                                                                              d="M8.333,1.667A33.41,33.41,0,0,0,4,1.96,2.343,2.343,0,0,0,1.96,4a33.41,33.41,0,0,0-.293,4.33,33.41,33.41,0,0,0,.293,4.33A2.343,2.343,0,0,0,4,14.707,33.423,33.423,0,0,0,8.333,15a33.423,33.423,0,0,0,4.33-.293,2.343,2.343,0,0,0,2.043-2.043A33.423,33.423,0,0,0,15,8.333,33.423,33.423,0,0,0,14.707,4,2.343,2.343,0,0,0,12.664,1.96,33.41,33.41,0,0,0,8.333,1.667ZM3.785.307A4.009,4.009,0,0,0,.307,3.785,35.074,35.074,0,0,0,0,8.333a35.074,35.074,0,0,0,.307,4.548,4.009,4.009,0,0,0,3.477,3.477,35.077,35.077,0,0,0,4.548.308,35.077,35.077,0,0,0,4.548-.308,4.009,4.009,0,0,0,3.477-3.477,35.077,35.077,0,0,0,.308-4.548,35.077,35.077,0,0,0-.308-4.548A4.009,4.009,0,0,0,12.882.307,35.074,35.074,0,0,0,8.333,0,35.074,35.074,0,0,0,3.785.307Z"
+                                                                              transform="translate(1.667 1.667)"
+                                                                              fill="#777e90" fill-rule="evenodd" />
+                                                                        <g id="Shape-2" data-name="Shape"
+                                                                           transform="translate(3.54 5.833)">
+                                                                            <path id="_56E610E7-58EB-47AD-9B0B-E558D3B31022"
+                                                                                  data-name="56E610E7-58EB-47AD-9B0B-E558D3B31022"
+                                                                                  d="M1.667,3.333A1.667,1.667,0,1,0,0,1.667,1.667,1.667,0,0,0,1.667,3.333Z"
+                                                                                  transform="translate(2.294)"
+                                                                                  fill="#777e90" />
+                                                                            <path id="_6D51FB35-1D79-4932-9408-CF43568B74FC"
+                                                                                  data-name="6D51FB35-1D79-4932-9408-CF43568B74FC"
+                                                                                  d="M11.562.732l1.5,1.5c-.052.78-.127,1.5-.21,2.147L10.383,1.911a.833.833,0,0,0-1.179,0L7.395,3.72a2.5,2.5,0,0,1-3.536,0l-.143-.143a.833.833,0,0,0-1.179,0L.53,5.585A2.392,2.392,0,0,1,.087,4.473Q.042,4.131,0,3.758L1.359,2.4a2.5,2.5,0,0,1,3.536,0l.143.143a.833.833,0,0,0,1.179,0L8.026.732A2.5,2.5,0,0,1,11.562.732Z"
+                                                                                  transform="translate(0 4.024)"
+                                                                                  fill="#777e90" />
+                                                                        </g>
+                                                                    </g>
+                                                                </svg>
+
+
+                                                                <a href="./portfolio" @onclick="OnProfileMenuItemClick" class="text-black font_size_14">My items</a>
+
+                                                            </div>
+                                                        </li>
+                                                        <li class="list-group-item  bg_transparent border-top-0 border-right-0 border-left-0 border-bottom">
+                                                            <div class="d-flex flex-wrap align-items-center">
+                                                                <svg xmlns="http://www.w3.org/2000/svg" width="13.333"
+                                                                     class="mr-3" height="20" viewBox="0 0 13.333 20">
+                                                                    <g id="icons_Light_Bulb_Line"
+                                                                       data-name="icons/Light Bulb/Line"
+                                                                       transform="translate(-3.333)">
+                                                                        <path id="Shape"
+                                                                              d="M1.667,0V2.5a.833.833,0,0,0,.833.833H4.167A.833.833,0,0,0,5,2.5V0H6.667V2.5A2.5,2.5,0,0,1,4.167,5H2.5A2.5,2.5,0,0,1,0,2.5V0Z"
+                                                                              transform="translate(6.667 15)"
+                                                                              fill="#777e90" />
+                                                                        <path id="Shape-2" data-name="Shape"
+                                                                              d="M9.167,11.071l.624-.5a5,5,0,1,0-6.248,0l.624.5v2.262A.833.833,0,0,0,5,14.167H8.333a.833.833,0,0,0,.833-.833Zm1.667.8v1.462a2.5,2.5,0,0,1-2.5,2.5H5a2.5,2.5,0,0,1-2.5-2.5V11.871a6.667,6.667,0,1,1,8.333,0Z"
+                                                                              transform="translate(3.333)" fill="#777e90"
+                                                                              fill-rule="evenodd" />
+                                                                        <path id="Shape-3" data-name="Shape"
+                                                                              d="M1.423.244A.833.833,0,0,0,.244,1.423L1.667,2.845V7.5H3.333V2.845L4.756,1.423A.833.833,0,0,0,3.577.244L2.5,1.321Z"
+                                                                              transform="translate(7.5 6.667)"
+                                                                              fill="#777e90" />
+                                                                    </g>
+                                                                </svg>
+
+
+                                                                <button @onclick="@OnChangeTheme"
+                                                                        class="btn btn-muted font_size_14 mx-0 px-0 border-0 focus_shadow_off">
+                                                                    Dark theme
+                                                                </button>
+                                                                <div class="ml-auto">
+                                                                    <div class="custom-control custom-switch ">
+                                                                        <input type="checkbox" class="custom-control-input cup" id="darkSwitch" checked="@bDarkTheme" @onchange="@OnChangeDarkToggle">
+                                                                        <label class="custom-control-label cup"
+                                                                               for="darkSwitch"></label>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        </li>
+                                                        <li class="list-group-item  bg_transparent border-0">
+                                                            <div class="d-flex flex-wrap align-items-center">
+
+                                                                <svg xmlns="http://www.w3.org/2000/svg" width="16.669"
+                                                                     height="16.667" viewBox="0 0 16.669 16.667">
+                                                                    <g id="icons_Sign_Out_Line"
+                                                                       data-name="icons/Sign Out/Line"
+                                                                       transform="translate(-1.667 -1.665)">
+                                                                        <path id="Shape"
+                                                                              d="M5.833.8a.833.833,0,0,1-.8.864c-1.037.039-1.794.094-2.336.148a.932.932,0,0,0-.911.825,19.22,19.22,0,0,0-.118,2.3,19.218,19.218,0,0,0,.118,2.3.932.932,0,0,0,.911.825c1.007.1,2.747.2,5.638.2s4.631-.1,5.638-.2a.932.932,0,0,0,.911-.825A19.2,19.2,0,0,0,15,4.944a19.2,19.2,0,0,0-.118-2.3.932.932,0,0,0-.911-.825c-.543-.054-1.3-.109-2.336-.148A.833.833,0,1,1,11.7,0c1.064.04,1.856.1,2.438.155a2.6,2.6,0,0,1,2.4,2.282,20.85,20.85,0,0,1,.13,2.507,20.85,20.85,0,0,1-.13,2.507,2.6,2.6,0,0,1-2.4,2.282c-1.078.107-2.877.212-5.8.212s-4.724-.1-5.8-.212A2.6,2.6,0,0,1,.13,7.451,20.853,20.853,0,0,1,0,4.944,20.854,20.854,0,0,1,.13,2.437,2.6,2.6,0,0,1,2.53.156C3.113.1,3.9.041,4.969,0A.833.833,0,0,1,5.833.8Z"
+                                                                              transform="translate(8.391 18.332) rotate(-90)"
+                                                                              fill="#777e90" />
+                                                                        <path id="Shape-2" data-name="Shape"
+                                                                              d="M4.339,6.077A.833.833,0,0,1,3.161,7.256L.244,4.339a.833.833,0,0,1,0-1.179L3.161.244A.833.833,0,0,1,4.339,1.423L2.845,2.917h7.988a.833.833,0,1,1,0,1.667H2.845Z"
+                                                                              transform="translate(1.667 6.25)"
+                                                                              fill="#777e90" />
+                                                                    </g>
+                                                                </svg>
+                                                                <button class="btn btn-muted font_size_14 border-0 focus_shadow_off" @onclick="(() => OnSignOutClick())">
+                                                                    Disconnect
+                                                                </button>
+                                                            </div>
+                                                        </li>
+                                                    </ul>
+
+
+                                                </div>
+                                            </div>
+                                        </div>
+                                    }
+                                    <span class="mr-2 d-none d-lg-inline">@EthAmount</span>
+                                </div>
+                            </li>
+                        }
+                        else
+                        {
+                            <li class="nav-item d-inline mr-2 mt-auto mb-auto">
+                                <button class="btn px-4 rounded-pill text_theme_black font_size_18 text-nowrap bg_df btn-sm" @onclick="(() => OnUploadWork())">
+                                    Create
+                                </button>
+                            </li>
+                            <li class="nav-item d-inline">
+                                <button class="btn px-4 rounded-pill text_theme_black font_size_18 text-nowrap border btn-muted btn-sm" @onclick="(() => OnSignInClick())">
+                                    Connect Wallet
+                                </button>
+                            </li>
+                        }
+                    </ul>
+                </nav>
+            </div>
+        </div>
+    </div>
+</header>
+
+@*<div class="wrapper" style=" display: none;">
+    Sidebar
+    <nav id="sidebar">
+
+        <div class="sidebar-header">
+            <div class="active" style="padding-left: 30px;">
+                <CopyToClipboardButton Text="@selected_account_addr" shortText="@shortAddr" />
+            </div>
+        </div>
+
+        <div class="col-sm-8" style="max-width: 700px; margin: auto; height: 40vh;">
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-sm-12">
+                        <ul class="list-unstyled components">
+                            <li class="active">
+                                <p style="font-size: 1.4em; border-bottom: 1px solid #47748b; text-align: center;">@EthAmount</p>
+                                <p style="font-size: 1.0em; text-align: center;">$ @UsdAmount</p>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="row">
+                    <RadzenButton id="AddEth" Style="margin: auto;" Text="Add ETH" ButtonStyle="ButtonStyle.Success" />
+                </div>
+                <button @onclick="(() => OnSignOutClick())" style="display: inline; font-size:12px; bottom: 10px; right: 10px; position: absolute;" class="btn btn-success">
+                    <i class="fa fa-sign-out"></i> Log Out
+                </button>
+            </div>
+        </div>
+    </nav>
+</div>*@
+<!-- Dark Overlay element -->
+<!--<div class="overlay"></div>-->
+
+@*<div class="overlay-body" @onclick="OnOutsideClick">
+    @Body
+</div>*@
+
+<div @onclick="OnOutsideClick">
+    @Body
+</div>
+
+<!-- footer -->
+<footer class="mt-3 mt-md-5 border-top pt-5 footer_ui_component" @onclick="OnOutsideClick">
+    <div class="container-xxl">
+        <div class="row ">
+            <div class="col-md-4  mb-4">
+                <div class="col_wrapper ui_border_bottom_md_less">
+                    <a class="navbar-brand text-black" href="#">
+                        <img src="./img/notify_sturb.png" class="" alt="notify_sturb"
+                             style="width: 20px; height: 20px;">
+                        <span class="font_size_24 ">
+                            starboard
+                        </span>
+                    </a>
+                    <br><br>
+                    <span class="font_size_14 text_23 font_family_poppins">
+                        Behind each NFT is a Person with a
+                        Story
+                    </span>
+                    <br><br>
+                </div>
+            </div>
+            <div class="col-md-2   mb-4">
+                <div class="col_wrapper collapse_md_less_custom ui_border_bottom_md_less">
+                    <h6 data-toggle="collapse" data-target="#Starboard_collapse"
+                        class="d-flex justify-content-between align-items-center">
+                        <span>
+                            Starboard.
+                        </span>
+                        <span class="icon_wrapper d-md-none">
+                            <i class="fas fa-angle-down    "></i>
+                        </span>
+                    </h6>
+                    <ul id="Starboard_collapse" class="list-group collapse show" role="tabpanel">
+                        <li class="list-group-item bg_transparent border-0 px-0">
+                            <a href="#" class="text_7 font_size_14">Discover</a>
+                        </li>
+                        <li class="list-group-item bg_transparent border-0 px-0">
+                            <a href="#" class="text_7 font_size_14">
+                                Connect wallet
+                            </a>
+                        </li>
+                        <li class="list-group-item bg_transparent border-0 px-0">
+                            <a href="#" class="text_7 font_size_14">
+                                Create item
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+            <div class="col-md-2  mb-4">
+                <div class="col_wrapper collapse_md_less_custom ui_border_bottom_md_less">
+                    <h6 data-toggle="collapse" data-target="#Info_collapse"
+                        class="d-flex justify-content-between align-items-center">
+                        <span>
+                            Info
+                        </span>
+                        <span class="icon_wrapper d-md-none">
+                            <i class="fas fa-angle-down    "></i>
+                        </span>
+                    </h6>
+                    <ul id="Info_collapse" class="list-group collapse show" role="tabpanel">
+                        <li class="list-group-item bg_transparent border-0 px-0">
+                            <a href="#" class="text_7 font_size_14">Download</a>
+                        </li>
+                        <li class="list-group-item bg_transparent border-0 px-0">
+                            <a href="#" class="text_7 font_size_14">
+                                Demos
+                            </a>
+                        </li>
+                        <li class="list-group-item bg_transparent border-0 px-0">
+                            <a href="#" class="text_7 font_size_14">
+                                Support
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+            <div class="col-md-4  mb-4">
+                <div class="col_wrapper ui_border_bottom_md_less pb-4">
+                    <h6 class="not_font_responsive">
+                        Join Newsletter
+                    </h6>
+                    <br><br>
+                    <span class="font_size_14 text_23 font_family_poppins">
+                        Subscribe our newsletter to get more free design course and resource
+                    </span>
+                    <br>
+                    <div class="form-group my-3">
+                        <div class="d-flex border rounded-pill p-1">
+                            <input type="email" placeholder="Enter your email"
+                                   class="form-control border-0 p-2 shadow-0 focus_shadow_off">
+                            <button class="btn btn-primary w_h_40 p-1 rounded-circle btn-sm">
+                                <i class="fas fa-angle-right    "></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-12 py-3 d-none d-md-block">
+                <div class="border-bottom"></div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-12">
+                <div class="col_wrapper pb-3 align-items-center d-flex justify-content-between">
+                    <div class="flex_item flex-grow-1 text-center text-md-left">
+                        <span class="font_size_12 text_7 font_family_poppins">
+                            Copyright © 2021 Starboard Labs LLC. All rights reserved
+                        </span>
+                    </div>
+                    <div class="flex_item font_size_12 font_family_poppins text_23 d-none d-md-block">
+                        <span>
+                            We use cookies for better service.
+                        </span>
+                        <a class="ml-2 text-primary text_underline" href="http://starboard.cookiesept">Accept</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</footer>
+
+
+@code {
+
+    //bool bSignIn = false;
+    UserProfileHeader objProfileHeaderSettings = new UserProfileHeader();
+
+    public bool bProfileVisible = false;
+    public bool bProfileItemClick = false;
+    public bool bProfileMenuClick = false;
+    public bool bUserClick = false;
+    public bool bDarkTheme = false;
+
+    string UsdAmount { get; set; }
+    string EthAmount { get; set; }
+    public string shortAddr { get; set; }
+    public string searchText { get; set; }
+    public byte[] newAuctionImg { get; set; }
+    public int nUnreadNotification { get; set; }
+
+    private HubConnection hubConnection;
+    public Notification messageJsonString;
+
+    public List<Notification> RecentNotification = new List<Notification>();
+
+    // cookie
+    public string selected_account_addr { get; set; }
+
+    protected async override Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            var darkThemeSelected = await localStore.GetItemAsync<string>("darkSwitch") != null && await localStore.GetItemAsync<string>("darkSwitch") == "dark";
+            if (darkThemeSelected)
+            {
+                bDarkTheme = true;
+                await jsRuntime.InvokeVoidAsync("document.body.setAttribute", "data-theme", "dark");
+            }
+            else
+            {
+                bDarkTheme = false;
+                await jsRuntime.InvokeVoidAsync("document.body.removeAttribute", "data-theme");
+            }
+
+            var profileheader_Id = await localStore.GetItemAsync<Guid>("headerId");
+            string userId = profileheader_Id.ToString();
+
+            objProfileHeaderSettings = await ProfileService.GetProfileAsync(profileheader_Id);
+
+            hubConnection = new HubConnectionBuilder().WithUrl(NavigationManager.ToAbsoluteUri("/notificationHub?userId=" + userId)).Build();
+            hubConnection.On<string>("NewAuctionNofitication", (nftDataList) =>
+            {
+                messageJsonString = JsonConvert.DeserializeObject<Notification>(nftDataList);
+
+                RecentNotification.Add(messageJsonString);
+                RecentNotification = RecentNotification.OrderByDescending(x => x.CreateDateTimeUtc).ToList();
+
+                nUnreadNotification = GetCountOfUnreadNotification(RecentNotification).Result;
+
+                StateHasChanged();
+            });
+
+            await hubConnection.StartAsync();
+
+            selected_account_addr = await localStore.GetItemAsync<string>("address");
+            StateHasChanged();
+
+            if (!string.IsNullOrEmpty(selected_account_addr))
+            {
+                IEnumerable<Notification> enumerable = await NotificationService.GetRecentNotificationbyUserHeaderId(profileheader_Id);
+                RecentNotification = enumerable.ToList();
+                RecentNotification = RecentNotification.OrderByDescending(x => x.CreateDateTimeUtc).ToList();
+
+                nUnreadNotification = await GetCountOfUnreadNotification(RecentNotification);
+
+                await hubConnection.SendAsync("GetConnectionId");
+
+                decimal ether_amount = await _ethereumHostProvider.GetAccountBalance(selected_account_addr);
+
+                var usd_amount = Startup.CoinPriceDict["ETH"] * ether_amount;
+                UsdAmount = Math.Round(usd_amount, 2) + "  USD";
+                EthAmount = Math.Round((decimal)ether_amount, 4) + "  ETH";
+            }
+            else
+                selected_account_addr = "";
+
+            if (!string.IsNullOrEmpty(selected_account_addr))
+            {
+                shortAddr = selected_account_addr.Substring(0, 10) + "..." + selected_account_addr.Substring(38);
+            }
+
+            StateHasChanged();
+        }
+    }
+
+    async Task<int> GetCountOfUnreadNotification(IEnumerable<Notification> RecentNotification)
+    {
+        int nUnread = 0;
+        foreach (var recentNotification in RecentNotification)
+        {
+            if (recentNotification.IsRead == false)
+                nUnread++;
+        }
+
+        return nUnread;
+    }
+
+    private async Task OnBellClick()
+    {
+        var profileheader_Id = await localStore.GetItemAsync<Guid>("headerId");
+        await NotificationService.ReadNewNotifications(profileheader_Id);
+
+        IEnumerable<Notification> enumerable = await NotificationService.GetRecentNotificationbyUserHeaderId(profileheader_Id);
+        RecentNotification = enumerable.ToList();
+        RecentNotification = RecentNotification.OrderByDescending(x => x.CreateDateTimeUtc).ToList();
+
+        nUnreadNotification = await GetCountOfUnreadNotification(RecentNotification);
+
+        StateHasChanged();
+    }
+
+    void OnUploadWork()
+    {
+        if (!string.IsNullOrEmpty(selected_account_addr))
+            NavigationManager.NavigateTo("uploadnfttype");
+        else NavigationManager.NavigateTo("signin");
+    }
+
+    void OnGoAuction()
+    {
+        if (!string.IsNullOrEmpty(selected_account_addr))
+            NavigationManager.NavigateTo("explore");
+        else NavigationManager.NavigateTo("signin");
+    }
+
+    void OnSignInClick()
+    {
+        NavigationManager.NavigateTo("signin");
+    }
+
+    void OnMyProfile()
+    {
+        NavigationManager.NavigateTo("account");
+    }
+
+    void OnViewProfile()
+    {
+        NavigationManager.NavigateTo("viewprofile");
+    }
+
+    void OnPortfolio()
+    {
+        NavigationManager.NavigateTo("portfolio");
+    }
+
+    private async Task OnSignOutClick()
+    {
+        await localStore.RemoveItemAsync("address");
+        await localStore.RemoveItemAsync("ope_wallet_type");
+        await localStore.RemoveItemAsync("open_wallet_date");
+
+        NavigationManager.NavigateTo("signin", true);
+    }
+
+    void OnUserClick()
+    {
+        if (bProfileVisible == true) bProfileVisible = false;
+        else bProfileVisible = true;
+
+        bUserClick = true;
+        StateHasChanged();
+    }
+
+    void OnOutsideClick()
+    {
+        if (bUserClick == true || bProfileMenuClick == true)
+        {
+            bUserClick = false;
+            bProfileMenuClick = false;
+        }
+        else bProfileVisible = false;
+        StateHasChanged();
+    }
+
+    void OnProfileMenuClick()
+    {
+        if (bProfileItemClick == false)
+            bProfileVisible = true;
+        else
+        {
+            bProfileVisible = false;
+            bProfileItemClick = false;
+        }
+
+        bProfileMenuClick = true;
+        StateHasChanged();
+    }
+
+    void OnProfileMenuItemClick()
+    {
+        bProfileItemClick = true;
+    }
+
+    private void OnViewAccountBalance()
+    {
+        NavigationManager.NavigateTo("account");
+    }
+
+    private async Task CopyTextToClipboard()
+    {
+        await jsRuntime.InvokeVoidAsync("blazorExtensions.copyText", selected_account_addr);
+    }
+
+    public void Enter(KeyboardEventArgs e)
+    {
+        if (e.Code == "Enter" || e.Code == "NumpadEnter")
+        {
+            NavigationManager.NavigateTo("search/" + searchText, true);
+        }
+    }
+
+    private void SetValue(ChangeEventArgs e)
+    {
+        searchText = e.Value.ToString();
+        StateHasChanged();
+    }
+
+    private async Task OnChangeTheme()
+    {
+        if (bDarkTheme)
+        {
+            bDarkTheme = false;
+            await jsRuntime.InvokeVoidAsync("document.body.removeAttribute", "data-theme");
+            await localStore.RemoveItemAsync("darkSwitch");
+        }
+        else
+        {
+            bDarkTheme = true;
+            await jsRuntime.InvokeVoidAsync("document.body.setAttribute", "data-theme", "dark");
+            await localStore.SetItemAsync("darkSwitch", "dark");
+        }
+
+        StateHasChanged();
+    }
+
+    private async Task OnChangeDarkToggle(ChangeEventArgs e)
+    {
+        if (bool.Parse(e.Value.ToString()))
+        {
+            bDarkTheme = true;
+            await jsRuntime.InvokeVoidAsync("document.body.setAttribute", "data-theme", "dark");
+            await localStore.SetItemAsync("darkSwitch", "dark");
+        }
+        else
+        {
+            bDarkTheme = false;
+            await jsRuntime.InvokeVoidAsync("document.body.removeAttribute", "data-theme");
+            await localStore.RemoveItemAsync("darkSwitch");
+        }
+
+        StateHasChanged();
+    }
+}

@@ -1,0 +1,49 @@
+﻿@using StarboardNFT.Models;
+@using StarboardNFT.Data;
+
+@inject Blazored.LocalStorage.ILocalStorageService localStore;
+
+@inherits OwningComponentBase<ProfileService>
+
+<h3>Linked Accounts</h3>
+
+<RadzenGrid PageSize="5" AllowPaging="true" AllowSorting="true" Data="@ProfileSettings" TItem="UserProfile" Style="width: 50%;">
+    <Columns>
+        <RadzenGridColumn Width="300px" TItem="UserProfile" Property="EthAddress" Title="Address">
+            <Template Context="data">
+                @if (data.EthAddress == current_address)
+                {
+                    <span style='font-weight: bold; color:black;'>@data.EthAddress</span>
+                }
+                else
+                {
+                    <span style="color: black;">@data.EthAddress</span>
+                }
+            </Template>
+        </RadzenGridColumn>
+        @*<RadzenGridColumn TItem="UserProfile" Property="Email" Title="Email" />
+        <RadzenGridColumn TItem="UserProfile" Property="UserName" Title="User name" />
+        <RadzenGridColumn TItem="UserProfile" Property="DefaultProfile" Title="Is Default">
+            <Template Context="data">
+                <div style='text-align:center'>
+                    <RadzenCheckBox @bind-Value="@data.DefaultProfile" TValue="bool" Disabled="true" />
+                </div>
+            </Template>
+        </RadzenGridColumn>*@
+    </Columns>
+</RadzenGrid>
+
+@code {
+
+    IEnumerable<UserProfile> ProfileSettings;
+    string current_address;
+
+    protected async override Task OnInitializedAsync()
+    {
+        var profileheader_Id = await localStore.GetItemAsync<Guid>("headerId");
+        current_address = await localStore.GetItemAsync<string>("address");
+        ProfileSettings = await Service.GetAllProfileAsync(profileheader_Id);
+
+        StateHasChanged();
+    }
+}

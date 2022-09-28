@@ -1,0 +1,818 @@
+﻿@page "/placebid/{auctionId}"
+
+@using StarboardNFT.Data;
+@using StarboardNFT.Models;
+
+@inject NotificationService NotificationService
+@inject Blazored.SessionStorage.ISessionStorageService sessionStorage;
+@inject Blazored.LocalStorage.ILocalStorageService localStore
+@inject NavigationManager NavigationManager
+@inject IJSRuntime jsRuntime;
+@inject DialogService DialogService;
+@inject ProfileService ProfileService;
+@inject ActivityService ActivityService;
+
+@inherits OwningComponentBase<AuctionService>
+@using Microsoft.AspNetCore.SignalR.Client
+@using Newtonsoft.Json;
+
+
+<main>
+    <!----------Sound Wave First Section------------------>
+    <section id="sound_wave">
+        <div class="container ">
+            <div class="row py-5 aligh-item-center">
+                <div class="sound_wave_left col-md-6 p-4">
+                    @if (auction.NFTData != null)
+                    {
+                        <img src="data:image/gif;base64,@System.Convert.ToBase64String(auction.NFTData.NFT.FileContent)" width="100%" height="500px">
+                        <div class="pt-2">
+                            <button class="btn btn-primary rounded-pill px-3 py-1 btn-sm" @onclick="() => OnAddLike(auction.NFTDataId, auction.NFTData.NFT.UserProfile.UserProfileHeaderId)">
+                                <i class="fas fa-heart btn-sm"></i>
+                                Like
+                            </button>
+
+                            <button class="btn btn-primary rounded-pill px-3 py-1 btn-sm position-absolute right_25" @onclick="() => OnAddFavorite(auction.NFTDataId, auction.NFTData.NFT.UserProfile.UserProfileHeaderId)">
+                                <i class="fa fa-plus btn-sm" aria-hidden="true"></i>
+                                Favorite
+                            </button>
+                        </div>
+                    }
+                </div>
+                <div class="sound_wave_right col-md-6 p-4 justify-content-center">
+                    <div class="sound_wave_right_top">
+                        @if (auction.NFTData != null)
+                        {
+                            <h1 class="sound_wave_title" style="position: absolute;">@auction.NFTData.NFT.Title</h1>
+                        }
+
+                        <div class="text-right">
+                            <a @onclick="OnReport" style="cursor: pointer; right:auto;" class="btn btn-primary @IsReport rounded-0 px-md-4">Report</a>
+                        </div>
+                    </div>
+
+                    <div class="sound_wave_right_mid p-2 p-md-5 mt-3 mb-3 text-white">
+                        <div class="sound_wave_right_mid_wrap align-items-center">
+                            <div class="mid_title">
+                                <p class="pb-3" style="display:inline; position: absolute;">Place a bid</p>
+                                @if (AuctionBidList != null)
+                                {
+                                    <p class="pb-3 text-center">[<a @onclick="OnBidHistory" style="cursor: pointer;">@bidCount bids</a>]</p>
+                                    <p class="pb-3 text-center">Time left: @leftTimeStr</p>
+                                }
+                            </div>
+                            <div class="row ">
+                                <div class="col-md-3 col-2">
+                                    <div class="minus_sign ">
+                                        <a @onclick="OnBidPriceMinus" style="cursor: pointer;"><i class="fas fa-minus"></i></a>
+                                    </div>
+                                </div>
+                                <div class="col-md-6 col-8">
+                                    <div class="bid_amount_wrap text-center">
+                                        <h2 class="bid_amount">@bidPrice</h2>
+                                    </div>
+                                </div>
+                                <div class="col-2 col-md-3">
+                                    <div class="plus_sign">
+                                        <a @onclick="OnBidPricePlus" style="cursor: pointer;"><i class="fas fa-plus"></i></a>
+                                    </div>
+                                </div>
+                            </div>
+                            <p class="text-center pb-3">Place a bid</p>
+                            <div class="row align-items-center">
+                                <div class="col-md-6 col-6 text-right">
+                                    <a @onclick="OnPlaceBid" style="cursor: pointer;" class="btn btn-primary rounded-0 px-md-4 @IsDisabled">Place a Bid</a>
+                                </div>
+                                <div class="col-md-6 col-6">
+                                    <a @onclick=@(args => ShowBuyOutDialog(auction.NFTData.FiatBuyOutPrice)) style="cursor: pointer;" class="btn btn_buy_now rounded-0 px-md-4">Buy Now</a>
+                                </div>
+                            </div>
+                            @if (auction.IsReserveMet == false)
+                            {
+                                <p class="pb-3 pt-2 text-center">Reserve not met</p>
+                            }
+                        </div>
+                    </div>
+
+                    <div class="sound_wave_right_btm ">
+                        <div class="row">
+                            @if (auction.CurrentWinningUserId != profileheader_Id)
+                            {
+                                <div class="last_bid col-md-4 col-4">
+                                    <div class="last_bid_title">
+                                        <h2 class="mb-0">Last Bid</h2>
+                                    </div>
+                                    <div class="last_bid_price">
+                                        <h2>@auction.CurrentBidPrice</h2>
+                                    </div>
+                                </div>
+                                <div class="listing_price col-md-4 col-4">
+                                    <div class="last_bid_title">
+                                        <h2 class="mb-0">Listing Price</h2>
+                                    </div>
+                                    <div class="last_bid_price">
+                                        <h2>@listPrice</h2>
+                                    </div>
+                                </div>
+                                <div class="listing_price col-md-4 col-4">
+                                    <div class="last_bid_title">
+                                        <h2 class="mb-0">Buy Price</h2>
+                                    </div>
+                                    <div class="last_bid_price">
+                                        <h2>@buyoutPrice</h2>
+                                    </div>
+                                </div>
+                            }
+                            else
+                            {
+                                <div class="last_bid col-md-3 col-3">
+                                    <div class="last_bid_title">
+                                        <h2 class="mb-0">Last Bid</h2>
+                                    </div>
+                                    <div class="last_bid_price">
+                                        <h2>@auction.CurrentBidPrice</h2>
+                                    </div>
+                                </div>
+                                <div class="listing_price col-md-3 col-3">
+                                    <div class="last_bid_title">
+                                        <h2 class="mb-0">Listing Price</h2>
+                                    </div>
+                                    <div class="last_bid_price">
+                                        <h2>@listPrice</h2>
+                                    </div>
+                                </div>
+                                <div class="listing_price col-md-3 col-3">
+                                    <div class="last_bid_title">
+                                        <h2 class="mb-0">Buy Price</h2>
+                                    </div>
+                                    <div class="last_bid_price">
+                                        <h2>@buyoutPrice</h2>
+                                    </div>
+                                </div>
+                                <div class="listing_price col-md-3 col-3">
+                                    <div class="last_bid_title">
+                                        <h2 class="mb-0">Max Price</h2>
+                                    </div>
+                                    <div class="last_bid_price">
+                                        <h2>@maxBidPrice</h2>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!----------More Works Second Section------------------>
+
+    <section id="more_works">
+        <div class="container py-5">
+            <div class="row py-3">
+                <div class="col-md-6">
+                    <p class="text-left more_work_title">More works by bu.damani1</p>
+                </div>
+                <div class="col-md-6">
+                    <div class="view_all_wrap">
+                        <a href="#" class="text-end">View All</a>
+                    </div>
+                </div>
+            </div>
+            <div class="card_list">
+                <div class="row">
+                    <div class="col-md-4 mb-3">
+                        <div class="col__wrapper">
+                            <div class="card text-white bg_transparent border_50 rounded-0">
+                                <div class="img_glash_frame p-4 overflow_hidden">
+                                    <img src="./images/home/Teal_Block.png"
+                                         class="card-img-top w-100 img_cover rounded-0 img_glash_frame--img blur__glass"
+                                         alt="Teal_Block">
+                                    <img class="card-img-top w-100 img_cover rounded-0 position-relative"
+                                         src="./images/home/Teal.png" alt="Teal_Block">
+                                </div>
+                                <div class="card-body">
+                                    <h4 class="card-title text-white text-nowrap">Teal Block</h4>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <div class="card text-white bg_transparent border_50 rounded-0">
+                            <div class="img_glash_frame  p-4 overflow_hidden">
+                                <img src="./images/home/Sound_wave.png"
+                                     class="card-img-top w-100 img_cover rounded-0 img_glash_frame--img blur__glass"
+                                     alt="Sound_wave">
+                                <img class="card-img-top w-100 img_cover rounded-0  position-relative"
+                                     src="./images/home/Sound_wave.png" alt="Sound_wave">
+                            </div>
+                            <div class="card-body">
+                                <h4 class="card-title text-white text-nowrap">Sound Wave Beginning 0</h4>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="card text-white bg_transparent border_50 rounded-0">
+                            <div class="img_glash_frame p-4 overflow_hidden">
+                                <img src="./images/home/Splasherz.png"
+                                     class="card-img-top blur__glass w-100 img_cover rounded-0 img_glash_frame--img"
+                                     alt="Splasherz">
+                                <img class="card-img-top w-100 img_cover rounded-0 position-relative"
+                                     src="./images/home/Splasherz.png" alt="Splasherz">
+                            </div>
+                            <div class="card-body">
+                                <h4 class="card-title text-white text-nowrap">Splasherz X2</h4>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!----------Popular Galas Section------------------>
+    <section id="popular_gala ">
+        <div class="container py-5 ">
+            <div class="gala_wrapper">
+                <h2 class="popular_gala_title py-3">Popular Gala's</h2>
+                <div class="row">
+                    <div class="col-md-4">
+                        <div class="images_list">
+                            <div class="large_image">
+                                <div class="large_image_wrap">
+                                    <img src="images/home/Lays_Spectrum.png" class="w-100">
+                                </div>
+                            </div>
+                            <!------div class="row">
+                                <div class="col-md-4 triple_image">
+                                    <img src="images/home/front@2x.png" >
+                                </div>
+                                <div class="col-md-4 triple_image">
+                                    <img src="images/home/front@2x.png">
+                                </div>
+                                <div class="col-md-4 triple_image">
+                                    <img src="images/home/front@2x.png">
+                                </div>
+                            </div---->
+                        </div>
+
+
+                        <div class="triple_image_info p-2">
+                            <div class="triple_image_title">
+                                <h2>Get the invite</h2>
+                            </div>
+                            <div class="row galas_profile">
+                                <div class="col-md-3 col-3">
+                                    <div class="galas_img_wrap">
+                                        <img src="images/home/profile_2.png">
+                                    </div>
+                                </div>
+                                <div class="col-md-6 col-6">
+                                    <div class="profile_title_wrap">
+                                        <div class="profile_title">
+                                            <p>Text goes here</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-3 col-3">
+                                    <div class="galas_profile_btn">
+                                        <a href="#">Accept</a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="images_list">
+                            <div class="large_image">
+                                <div class="large_image_wrap">
+                                    <img src="images/home/Lays_Spectrum.png" class="w-100">
+                                </div>
+                            </div>
+                            <!------div class="row">
+                                <div class="col-md-4 triple_image">
+                                    <img src="images/home/front@2x.png" >
+                                </div>
+                                <div class="col-md-4 triple_image">
+                                    <img src="images/home/front@2x.png">
+                                </div>
+                                <div class="col-md-4 triple_image">
+                                    <img src="images/home/front@2x.png">
+                                </div>
+                            </div---->
+                        </div>
+
+
+                        <div class="triple_image_info p-2">
+                            <div class="triple_image_title">
+                                <h2>Mattiss</h2>
+                            </div>
+                            <div class="row galas_profile">
+                                <div class="col-md-3 col-3">
+                                    <div class="galas_img_wrap">
+                                        <img src="images/home/profile_1.png">
+                                    </div>
+                                </div>
+                                <div class="col-md-6 col-6">
+                                    <div class="profile_title_wrap">
+                                        <div class="profile_title">
+                                            <p>Text goes here</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-3 col-3">
+                                    <div class="galas_profile_btn">
+                                        <a href="#">Accept</a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="images_list">
+                            <div class="large_image">
+                                <div class="large_image_wrap">
+                                    <img src="images/home/Lays_Spectrum.png" class="w-100">
+                                </div>
+                            </div>
+                            <!------div class="row">
+                                <div class="col-md-4 triple_image">
+                                    <img src="images/home/front@2x.png" >
+                                </div>
+                                <div class="col-md-4 triple_image">
+                                    <img src="images/home/front@2x.png">
+                                </div>
+                                <div class="col-md-4 triple_image">
+                                    <img src="images/home/front@2x.png">
+                                </div>
+                            </div---->
+                        </div>
+
+
+                        <div class="triple_image_info p-2">
+                            <div class="triple_image_title">
+                                <h2>Smart You Got In</h2>
+                            </div>
+                            <div class="row galas_profile">
+                                <div class="col-md-3 col-3">
+                                    <div class="galas_img_wrap">
+                                        <img src="images/home/profile_3.png">
+                                    </div>
+                                </div>
+                                <div class="col-md-6 col-6">
+                                    <div class="profile_title_wrap">
+                                        <div class="profile_title">
+                                            <p>Text goes here</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-3 col-3">
+                                    <div class="galas_profile_btn">
+                                        <a href="#">Accept</a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+</main>
+<!----------Footer Section------------------>
+
+@code {
+    [Parameter]
+    public string auctionId { get; set; }
+
+    public string IsDisabled { get; set; }
+
+    public bool IsEmailDisabled { get; set; }
+    public string IsReport { get; set; }
+
+    AuctionBidQueue auctionBid = new AuctionBidQueue();
+    StarboardNFT.Models.Auction auction = new StarboardNFT.Models.Auction();
+
+    IEnumerable<AuctionBid> AuctionBidList;
+
+    private HubConnection hubConnection;
+    public Auction updatedAuction;
+
+    public string selected_account_addr { get; set; }
+    Guid profileheader_Id = Guid.Empty;
+
+    decimal bidPrice = 0;
+    decimal listPrice = 0;
+    decimal buyoutPrice = 0;
+    decimal maxBidPrice = 0;
+
+    public string leftTimeStr { get; set; }
+
+    public int bidCount { get; set; }
+
+    UserProfileHeader CurrentUserProfileInfo = new UserProfileHeader();
+    public Report report = new Report();
+
+    // define a class to support the dropdown
+    public class EnumMyTypes
+    {
+        public Report.ReportReasonItems EnumValue { get; set; }
+        public string EnumName { get; set; }
+    }
+    // list for the dropdown
+    List<EnumMyTypes> MyTypes { get; set; } = new List<EnumMyTypes>();
+    TimeSpan leftTime = new TimeSpan(1, 12, 23, 62);
+    private static System.Timers.Timer leftTimer;
+    private static System.Timers.Timer aTimer;
+    private static System.Timers.Timer bTimer;
+    private bool bChangeTimer = false;
+
+    string userEmail = "";
+    bool timeEnded = false;
+
+    protected async override Task OnInitializedAsync()
+    {
+        auction = await Service.GetAuctionById(new Guid(auctionId));
+
+        bidPrice = auction.CurrentBidPrice + auction.IncrementAmount;
+        maxBidPrice = auction.MaxBidPrice;
+
+        AuctionBidList = Service.GetBidListByAuctionId(new Guid(auctionId));
+        bidCount = AuctionBidList.Count();
+
+        listPrice = auction.NFTData.FiatStartPrice;
+        buyoutPrice = auction.NFTData.FiatBuyOutPrice;
+
+        // load the list
+
+        foreach (Report.ReportReasonItems item in Enum.GetValues(typeof(Report.ReportReasonItems)))
+        {
+            MyTypes.Add(new EnumMyTypes { EnumName = item.ToString(), EnumValue = item });
+        }
+
+        //IEnumerable<Report> colorSchemes = Enum.GetValues(typeof(ColorScheme)).Cast<ColorScheme>();
+        //ColorScheme colorScheme = ColorScheme.Palette;
+
+        IsDisabled = "enabled";
+
+        StateHasChanged();
+
+        //Timer
+
+        leftTime = auction.NFTData.SaleEndtDate.Value.Subtract(DateTime.UtcNow);
+
+        StartTimer();
+
+        if (leftTime.TotalMinutes > 5)
+        {
+            aTimer = new System.Timers.Timer(10000);
+            aTimer.Elapsed += MoreFiveMinuteTimer;
+            aTimer.Enabled = true;
+        }
+        else
+        {
+            bTimer = new System.Timers.Timer(1000);
+            bTimer.Elapsed += RedirectFiveMinuteTimer;
+            bTimer.Enabled = true;
+        }
+        //////
+    }
+
+    protected async override Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            profileheader_Id = await localStore.GetItemAsync<Guid>("headerId");
+            string userId = profileheader_Id.ToString();
+
+            if (auction.NFTData.NFT.UserProfile.UserProfileHeaderId == profileheader_Id)
+                IsReport = "invisible";
+            else
+                IsReport = "visible";
+
+            CurrentUserProfileInfo = await ProfileService.GetProfileAsync(profileheader_Id);
+
+            if (CurrentUserProfileInfo.Email != null)
+            {
+                userEmail = CurrentUserProfileInfo.Email;
+                IsEmailDisabled = true;
+            }
+            else
+                IsEmailDisabled = false;
+
+            if (auction.CurrentWinningUserId == profileheader_Id)
+                bidPrice = auction.MaxBidPrice + auction.IncrementAmount;
+
+            hubConnection = new HubConnectionBuilder().WithUrl(NavigationManager.ToAbsoluteUri("/notificationHub?userId=" + userId)).Build();
+            hubConnection.On<string>("UpdateBidPrice", (auctionString) =>
+            {
+                StarboardNFT.Models.Auction updateAuction = new StarboardNFT.Models.Auction();
+                updateAuction = JsonConvert.DeserializeObject<StarboardNFT.Models.Auction>(auctionString);
+
+                if (updateAuction.Id != auction.Id)
+                {
+                    return;
+                }
+
+                auction = updateAuction;
+
+                bidPrice = auction.CurrentBidPrice + auction.IncrementAmount;
+
+                if (auction.CurrentWinningUserId == profileheader_Id)
+                    bidPrice = auction.MaxBidPrice + auction.IncrementAmount;
+
+                maxBidPrice = auction.MaxBidPrice;
+
+                IsDisabled = "enabled";
+
+                StateHasChanged();
+            });
+
+            hubConnection.On<string>("UpdateAuctionBidList", (auctionString) =>
+            {
+                StarboardNFT.Models.Auction updateAuction = new StarboardNFT.Models.Auction();
+                AuctionBidList = JsonConvert.DeserializeObject<IEnumerable<AuctionBid>>(auctionString);
+
+                bidCount = AuctionBidList.Count();
+
+                StateHasChanged();
+            });
+
+            hubConnection.On<string>("BuyOut", (auctionString) =>
+            {
+                IsDisabled = "enabled";
+            });
+
+            await hubConnection.StartAsync();
+            var selected_account_addr = await localStore.GetItemAsync<string>("address");
+
+            StateHasChanged();
+
+            if (!string.IsNullOrEmpty(selected_account_addr))
+            {
+                await hubConnection.SendAsync("GetConnectionId");
+            }
+            else
+                selected_account_addr = "";
+
+            StateHasChanged();
+        }
+
+        if(timeEnded == true)
+            NavigationManager.NavigateTo("endedauction/" + auction.Id);
+    }
+
+    private void OnBidPricePlus()
+    {
+        bidPrice = bidPrice + auction.IncrementAmount;
+    }
+
+    private void OnBidPriceMinus()
+    {
+        if (bidPrice > auction.MaxBidPrice + auction.IncrementAmount)
+        {
+            bidPrice = bidPrice - auction.IncrementAmount;
+        }
+        else
+        {
+            ShowNotification(new NotificationMessage { Severity = NotificationSeverity.Error, Summary = "Invalid Price", Detail = "New Bid Price should be higher than Current Bid!", Duration = 4000 });
+        }
+    }
+
+    async Task OnPlaceBid()
+    {
+        var profileheader_Id = await localStore.GetItemAsync<Guid>("headerId");
+
+        if (auction.NFTData.NFT.UserProfile.UserProfileHeaderId == profileheader_Id)
+        {
+            ShowNotification(new NotificationMessage { Severity = NotificationSeverity.Error, Summary = "Can't place a bid", Detail = "Owners are not allowed to place a bid for their own auctions.", Duration = 4000 });
+            return;
+        }
+
+        auction = await Service.GetAuctionById(new Guid(auctionId));
+
+        if (auction.IsAuctionOver == true)
+        {
+            ShowNotification(new NotificationMessage { Severity = NotificationSeverity.Error, Summary = "Auction is over", Detail = "Auction has been closed.", Duration = 4000 });
+            await Task.Delay(2000);
+            NavigationManager.NavigateTo("endedauction/" + auction.Id);
+        }
+
+        auctionBid.AuctionId = new Guid(auctionId);
+        auctionBid.BidUserId = profileheader_Id;
+
+        auctionBid.MaxBidAmount = bidPrice;
+        auctionBid.BidAmount = bidPrice;
+
+        var ethPrice = Startup.CoinPriceDict["ETH"];
+        auctionBid.EthMaxBidAmount = auctionBid.MaxBidAmount / ethPrice;
+        auctionBid.FiatMaxBidAmount = auctionBid.MaxBidAmount;
+        auctionBid.EthBidAmount = auctionBid.BidAmount / ethPrice;
+        auctionBid.FiatBidAmount = auctionBid.BidAmount;
+        auctionBid.Auction = auction;
+
+        bool result = await Service.OnPlaceBid(auctionBid);
+
+        IsDisabled = "disabled";
+        StateHasChanged();
+    }
+
+    async Task OnBuyout()
+    {
+        DialogService.Close(false);
+
+        Auction updatedAuction = await Service.GetAuctionById(new Guid(auctionId));
+        if (updatedAuction.IsAuctionOver == true)
+        {
+            ShowNotification(new NotificationMessage { Severity = NotificationSeverity.Error, Summary = "Auction is over", Detail = "Auction has been closed.", Duration = 3000 });
+            await Task.Delay(2000);
+            NavigationManager.NavigateTo("endedauction/" + updatedAuction.Id);
+        }
+        else
+        {
+
+            auctionBid.IsBuyItNow = true;
+            auctionBid.AuctionId = new Guid(auctionId);
+            auctionBid.Auction = updatedAuction;
+            auctionBid.BidUserId = profileheader_Id;
+            auctionBid.MaxBidAmount = updatedAuction.NFTData.FiatBuyOutPrice;
+
+            bool result = await Service.OnPlaceBid(auctionBid);
+        }
+    }
+
+    async Task ShowBuyOutDialog(decimal buyOutPrice)
+    {
+        var result = await DialogService.OpenAsync("Buyout Dialog", ds =>
+        @<div>
+            <p Style="margin-bottom: 1rem">Confirm?</p>
+            <div class="row">
+                <div class="col-md-12">
+                    <RadzenLabel Text="@("Buy Price : $" + buyOutPrice.ToString())" Style="text-align: center;" Component="CheckBox1" />
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-12">
+                    <RadzenButton Text="Ok" Click="() => OnBuyout()" Style="margin-bottom: 10px; width: 150px" />
+                    <RadzenButton Text="Cancel" Click="() => ds.Close(false)" ButtonStyle="ButtonStyle.Secondary" Style="margin-bottom: 10px; width: 150px" />
+                </div>
+            </div>
+        </div>);
+    }
+
+    async Task OnReport()
+    {
+        await ShowReportDialog();
+    }
+
+    private void OnBidHistory()
+    {
+        NavigationManager.NavigateTo("bidhistory/" + auction.Id);
+    }
+
+    void ShowNotification(NotificationMessage message)
+    {
+        NotificationService.Notify(message);
+    }
+
+    async Task ShowReportDialog() => await DialogService.OpenAsync("Report Dialog", ds =>
+    @<div>
+        <h3 Style="margin-bottom: 1rem">Report</h3>
+        <div class="row" style="margin-top: 2rem;">
+            <div class="col-md-4">
+                <h5 style="margin-top: .2rem; margin-right: 2rem; display: inline;">Reason : </h5>
+            </div>
+            <div class="col-md-5">
+                <RadzenDropDown Data="@MyTypes" TextProperty="EnumName" ValueProperty="EnumValue" @bind-Value="report.ReportReason" Style="width:100%;" />
+            </div>
+        </div>
+        <div class="row" style="margin-top: 2rem;">
+            <div class="col-md-4">
+                <h5 style="margin-top: .2rem; margin-right: 2rem; display: inline;">Email : </h5>
+            </div>
+            <div class="col-md-5">
+                <RadzenTextBox AllowClear="true" TValue="string" ReadOnly="@IsEmailDisabled" @bind-Value="@userEmail" Style="width:100%;" />
+            </div>
+        </div>
+        <div class="row" style="margin-top: 2rem;">
+            <div class="col-md-4">
+                <h5 style="margin-top: .2rem; margin-right: 2rem; display: inline;">Description : </h5>
+            </div>
+            <div class="col-md-7">
+                <RadzenTextArea AllowClear="true" TValue="string" @bind-Value="report.ReportDescription" Style="width:100%;" />
+            </div>
+        </div>
+        <div class="row" style="margin-top: 20px;">
+            <div class="col-md-11" style="justify-content: flex-end; display: flex;">
+                <RadzenButton Text="Submit" Click="() => OnReportSubmit()" Style="margin-bottom: 10px; width: 150px" ButtonStyle="ButtonStyle.Secondary" />
+                <RadzenButton Text="Cancel" Click="() => ds.Close(false)" Style="margin-bottom: 10px; width: 150px; margin-left: 15px;" />
+            </div>
+        </div>
+    </div>);
+
+    void OnChange(object value, string name)
+    {
+    }
+
+    async Task OnReportSubmit()
+    {
+        report.ReporterEmail = userEmail;
+        report.ReportedUserId = profileheader_Id;
+
+        await Service.AddNewReport(report);
+
+        // Close the dialog
+        DialogService.Close();
+
+        StateHasChanged();
+    }
+
+    public void StartTimer()
+    {
+        leftTimer = new System.Timers.Timer(1000);
+        leftTimer.Elapsed += CountDownTimer;
+        leftTimer.Enabled = true;
+    }
+
+    public void CountDownTimer(Object source, System.Timers.ElapsedEventArgs e)
+    {
+        if (leftTime > TimeSpan.Zero)
+        {
+            //auction = Service.GetAuctionById(new Guid(auctionId)).Result;
+            leftTime = auction.NFTData.SaleEndtDate.Value.Subtract(DateTime.UtcNow);
+            if(leftTime.TotalMinutes < 60)
+                leftTimeStr = string.Format("{0:%m} minute(s) {0:%s} seconds", leftTime);
+            else if(leftTime.TotalHours < 24)
+                leftTimeStr = string.Format("{0:%h} hour(s) {0:%m} minutes", leftTime);
+            else
+                leftTimeStr = string.Format("{0:%d} day(s) {0:%h} hour(s) {0:%m} minutes", leftTime);
+            InvokeAsync(() =>
+            {
+                StateHasChanged();
+            });
+        }
+        else
+        {
+            leftTimer.Enabled = false;
+            //NavigationManager.NavigateTo("endedauction/" + auction.Id);
+        }
+
+        //if (leftTime.TotalMinutes > 60 && bChangeTimer == false)
+        //{
+        //    leftTimer.Interval = 900000;
+        //    bChangeTimer = true;
+        //}
+        //else
+        //{
+        //    leftTimer.Interval = 1000;
+        //}
+    }
+
+    public void MoreFiveMinuteTimer(Object source, System.Timers.ElapsedEventArgs e)
+    {
+        Console.WriteLine("Redirect Timer for 5 mins left check running... still more than 5 mins.");
+
+        leftTime = auction.NFTData.SaleEndtDate.Value.Subtract(DateTime.UtcNow);
+
+        if (leftTime.TotalMinutes <= 5)
+        {
+            bTimer = new System.Timers.Timer(1000);
+            bTimer.Elapsed += RedirectFiveMinuteTimer;
+            bTimer.Enabled = true;
+        }
+    }
+
+    public void RedirectFiveMinuteTimer(Object source, System.Timers.ElapsedEventArgs e)
+    {
+        Console.WriteLine("Redirect Timer Started. There are now less than five minutes");
+
+        if (aTimer != null)
+        {
+            aTimer.Stop();
+            aTimer.Enabled = false;
+            aTimer.Dispose();
+        }
+
+        //You will need to add logic here to eventually redirect and check if the timeLeft has reached 0:00.00
+        leftTime = auction.NFTData.SaleEndtDate.Value.Subtract(DateTime.UtcNow);
+
+        if (leftTime < TimeSpan.Zero) {
+            bTimer.Stop();
+            bTimer.Enabled = false;
+
+            NavigationManager.NavigateTo("endedauction/" + auction.Id.ToString());
+            timeEnded = true;
+        }
+    }
+
+    private async Task OnAddLike(Guid NftDataId, Guid UserProfileHeaderId)
+    {
+        await ActivityService.SaveLikeNFTActivity(NftDataId, profileheader_Id);
+    }
+
+    private async Task OnAddFavorite(Guid NftDataId, Guid UserProfileHeaderId)
+    {
+        await ActivityService.SaveFavoriteNFT(NftDataId, UserProfileHeaderId);
+    }
+}

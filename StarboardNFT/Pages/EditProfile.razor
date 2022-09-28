@@ -1,0 +1,224 @@
+﻿@page "/editprofile"
+
+@using StarboardNFT.Models;
+@using StarboardNFT.Data;
+@using System.IO
+@using System.Text
+
+@inject ApplicationDbContext dbContext;
+@inject Blazored.LocalStorage.ILocalStorageService localStore;
+
+@inherits OwningComponentBase<ProfileService>
+
+<main>
+    <section class="border-bottom">
+        <div class="container-xxl">
+            <div class="row">
+                <div class="col-12 py-3">
+                    <div class="col_wrapper flex-wrap d-flex justify-content-between align-items-center ">
+                        <div class="flex_item">
+                            <button class="btn btn-muted rounded-pill border">
+                                <i class="fas fa-angle-left    "></i> Back to home
+                            </button>
+                        </div>
+                        <div class="flex_item d-flex align-items-center">
+                            <a href="#" class="btn btn-muted mx-2 shadow-0 focus_shadow_off">Home</a>
+                            <i class="fas fa-angle-right   "></i>
+                            <a href="#" class="btn btn-muted mx-2 shadow-0 focus_shadow_off">Upload Item</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="my-5">
+        <div class="container-xxl">
+            <div class="row justify-content-center">
+
+                <div class="col-12 col-xxl-10">
+                    <div class="col_wrapper">
+                        <form method="post" class="row">
+                            <div class="col-12 my-3 my-md-5">
+                                <div class="col_wrapper">
+                                    <h2 class="text_23">
+                                        Edit profile
+                                    </h2>
+                                    <p class="text_7">
+                                        You can set preferred display name, create <a href="#"
+                                                                                      class="text_23 font-weight-bold">your profile URL</a> and manage other
+                                        personal
+                                        settings.
+                                    </p>
+                                </div>
+                            </div>
+                            <div class="col-12 mb-3 col-xxl-6">
+                                <div class="col_wrapper ">
+                                    <div class="d-flex align-items-center">
+                                        <div class="flex_item">
+                                            <div class="img_box w_h_128 mr-3 mr-md-4">
+                                                @if (@objProfileHeaderSettings.UserPhoto != null)
+                                                {
+                                                    <img src="data:image/gif;base64,@System.Convert.ToBase64String(@objProfileHeaderSettings.UserPhoto)" class=" w_h_128 rounded-circle">
+                                                }
+                                                else
+                                                {
+                                                    <img src="images/home/user.png" alt="" class=" w_h_128 rounded-circle">
+                                                }
+                                            </div>
+                                        </div>
+                                        <div class="flex_item">
+                                            <strong class="text_23">
+                                                Profile photo
+                                            </strong>
+                                            <p class="font_size_12 text_7">
+                                                We recommend an image of at least 400x400. Gifs work too ðŸ™Œ
+                                            </p>
+                                            <button class="btn btn-muted rounded-pill border px-3">
+                                                <label for="uploadProfilePic" class="m-0 p-0 cup">Upload</label>
+                                            </button>
+                                            <div class="d-none uploadProfilePicWrapper">
+                                                <input type="file" name="upload" id="uploadProfilePic">
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6 mb-3 col-xxl-6">
+                                <div class="col_wrapper">
+                                    <h6 class="text_23">
+                                        Account info
+                                    </h6>
+                                    <br>
+                                    <div class="form-group">
+                                        <label for="" class="form-label font_size_12 text_b1 text-uppercase">
+                                            display name
+                                        </label>
+                                        <input type="text" class="form-control font_size_14 text_7 rounded_10"
+                                               placeholder="Enter your display name" value="@objProfileHeaderSettings.UserName">
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label for="" class="form-label font_size_12 text_b1 text-uppercase">
+                                            Custom url
+                                        </label>
+                                        <input type="url" class="form-control font_size_14 text_7 rounded_10"
+                                               placeholder="starboard.org/Your custom URL">
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label for="" class="form-label font_size_12 text_b1 text-uppercase">
+                                            Bio
+                                        </label>
+                                        <textarea class="form-control font_size_14 text_7 rounded_10 w-100" rows="5"
+                                                  placeholder="About yourselt in a few words" @bind="@objProfileHeaderSettings.UserOverview"></textarea>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6 mb-3 col-xxl-6 ml-lg-auto">
+                                <div class="col_wrapper">
+                                    <h6 class="text_23">
+                                        Social
+                                    </h6>
+                                    <br>
+                                    <div class="form-group">
+                                        <label for="" class="form-label font_size_12 text_b1 text-uppercase">
+                                            portfolio or website
+                                        </label>
+                                        <input type="url" class="form-control font_size_14 text_7 rounded_10"
+                                               placeholder="Enter URL">
+                                    </div>
+
+                                    <div class="form-group position-relative">
+                                        <label for="" class="form-label font_size_12 text_b1 text-uppercase">
+                                            twitter
+                                        </label>
+                                        <input type="url" class="form-control font_size_14 text_7 rounded_10"
+                                               style="padding-right: 120px" placeholder="twitter username">
+                                        <div class="position-absolute" style="right: 10px; bottom: 2px;">
+                                            <button class="btn btn-muted rounded-pill border btn-sm">
+                                                Verify account
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <button class="btn btn-muted border rounded-pill text_7 px-3">
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="13.333" height="13.333"
+                                                 class="mr-1" viewBox="0 0 13.333 13.333">
+                                                <path id="Union"
+                                                      d="M11.333,6.667A4.667,4.667,0,1,1,6.667,2,4.667,4.667,0,0,1,11.333,6.667Zm2,0A6.667,6.667,0,1,1,6.667,0,6.667,6.667,0,0,1,13.333,6.667ZM6.667,2.333a1,1,0,0,1,1,1V5.667H10a1,1,0,0,1,0,2H7.667V10a1,1,0,0,1-2,0V7.667H3.333a1,1,0,0,1,0-2H5.667V3.333A1,1,0,0,1,6.667,2.333Z"
+                                                      fill="#777e90" fill-rule="evenodd" />
+                                            </svg>
+                                            Add more social account
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="w-100"></div>
+                            <div class="col-12 mb-3 col-xxl-6 ml-lg-auto">
+                                <div class="col_wrapper py-4 border-bottom mb-4">
+                                    <p class="font_size_14 text_7">
+                                        To update your settings you should sign message through your wallet. Click
+                                        'Update profile' then sign the message
+                                    </p>
+                                </div>
+                            </div>
+                            <div class="w-100"></div>
+                            <div class="col-12 mb-3 col-xxl-6 ml-lg-auto">
+                                <div class="col_wrapper">
+                                    <button class="btn btn-primary rounded-pill mb-2 mb-sm-0 mr-sm-3 w_100_less_sm"
+                                            type="submit">
+                                        Update Profile
+                                    </button>
+                                    <button class="btn btn-muted  rounded-pill mb-2 mb-sm-0 w_100_less_sm"
+                                            type="reset">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20"
+                                             viewBox="0 0 20 20">
+                                            <g id="icons_Close_Circle_Line" data-name="icons/Close Circle/Line"
+                                               transform="translate(-2 -2)">
+                                                <path id="Shape"
+                                                      d="M10,18a8,8,0,1,0-8-8A8,8,0,0,0,10,18Zm0,2A10,10,0,1,0,0,10,10,10,0,0,0,10,20Z"
+                                                      transform="translate(2 2)" fill="#777e90" fill-rule="evenodd" />
+                                                <path id="Shape-2" data-name="Shape"
+                                                      d="M.293.293a1,1,0,0,1,1.414,0L4,2.586,6.293.293A1,1,0,1,1,7.707,1.707L5.414,4,7.707,6.293A1,1,0,0,1,6.293,7.707L4,5.414,1.707,7.707A1,1,0,0,1,.293,6.293L2.586,4,.293,1.707A1,1,0,0,1,.293.293Z"
+                                                      transform="translate(8 8)" fill="#777e90" />
+                                            </g>
+                                        </svg>
+                                        Clear all
+                                    </button>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </section>
+</main>
+
+@code {
+    UserProfile objProfileSettings = new UserProfile();
+    UserProfileHeader objProfileHeaderSettings = new UserProfileHeader();
+    string ethAddress = "";
+
+    protected async override Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            ethAddress = await localStore.GetItemAsync<string>("address");
+
+            var profileHeaderId = objProfileSettings.UserProfileHeaderId;
+
+            if (profileHeaderId == Guid.Empty)
+            {
+                var profileheader_Id = await localStore.GetItemAsync<string>("headerId");
+                if (!string.IsNullOrEmpty(profileheader_Id))
+                    profileHeaderId = new Guid(profileheader_Id);
+            }
+
+            objProfileHeaderSettings = await Service.GetProfileAsync(profileHeaderId);
+            StateHasChanged();
+        }
+    }
+}

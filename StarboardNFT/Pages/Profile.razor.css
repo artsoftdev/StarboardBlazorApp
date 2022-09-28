@@ -1,0 +1,13 @@
+.bg_transparent,
+.bg_transparent:focus,
+.bg_transparent:active,
+.bg_transparent:hover {
+    background: transparent;
+}
+
+.focus_off:focus {
+    box-shadow: none !important;
+    border: 0;
+    outline: 0;
+    background: transparent;
+}

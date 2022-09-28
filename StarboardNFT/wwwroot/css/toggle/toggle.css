@@ -1,0 +1,12 @@
+.light__theme .text_theme_black {
+  color: black !important;
+}
+
+.light__theme .text_theme_c7 {
+  color: #777E90;
+}
+
+.dark__theme .text_theme_white {
+  color: white !important;
+}
+/*# sourceMappingURL=toggle.css.map */

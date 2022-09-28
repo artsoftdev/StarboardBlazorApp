@@ -1,0 +1,138 @@
+/*-----Discover copy-------*/
+.category-item {
+    background: #123b53;
+    margin: 0px 9px;
+    padding: 1px;
+    width: 100px;
+    text-align: center;
+    border: 3px solid #2c566d;
+    font-size: 16px;
+    font-weight: 300;
+    float: left;
+}
+.category-item:hover {
+    background: #3772ff;
+    border: 3px solid#3772ff;
+}
+.category-item .active{
+   background: #3772ff;
+    border: 3px solid#3772ff;
+}
+.category-link i {
+    padding-right: 6px;
+}
+i.fas.fa-palette {
+    color: #a93145;
+}
+i.fas.fa-prescription-bottle {
+    color: #a09389;
+}
+i.fas.fa-music {
+    color: #aa7670;
+}
+i.fab.fa-gripfire {
+    color: #f7630c;
+    padding-right: 5px;
+    font-size: 35px;
+}
+.category-title {
+    font-size: 35px;
+    font-weight: 500;
+    letter-spacing: 2px;
+}
+a{
+  text-decoration: none;
+}
+ul li{
+  list-style: none; 
+}
+a:hover{
+  text-decoration: none;
+}
+ul.category-chart {
+    margin-left: 20%;
+}
+i.fab.fa-hotjar {
+    color: #e81224;
+    font-size: 30px;
+    padding-right: 5px;
+}
+
+.img_height_40 {
+    height: 40px;
+}
+
+@media (max-width: 900px) {
+    .img_height_40 {
+        height: 20px;
+    }
+}
+
+@media (max-width: 400px) {
+    .img_height_40 {
+        height: 12px;
+    }
+}
+
+
+@media (min-width: 700px) {
+    section.standard__marketplace .card__img {
+        height: 350px;
+    }
+}
+
+@media (min-width: 992px) {
+    section.company__logo .company__logo--list {
+        margin-left: -2rem !important;
+        margin-right: -2rem !important;
+    }
+}
+
+@media (max-width: 700px) {
+    .standard__marketplace h2 {
+        font-size: 2rem;
+    }
+
+    .standard__marketplace h4 {
+        font-size: 1rem;
+    }
+}
+
+@media (min-width: 700px) {
+    section.standard__marketplace .card__img {
+        height: 350px;
+    }
+}
+
+.bg_transparent,
+.bg_transparent:focus,
+.bg_transparent:active,
+.bg_transparent:hover {
+    background: transparent;
+}
+
+
+section.start__collecting {
+    min-height: 600px;
+}
+
+.start__collecting .col__wrapper {
+    position: relative;
+}
+
+@media (min-width: 992px) {
+    section.start__collecting {
+        height: 600px;
+    }
+
+    .start__collecting .col__wrapper::before {
+        content: "";
+        position: absolute;
+        width: 100%;
+        height: calc(100% + 5rem);
+        top: -5rem;
+        right: -3rem;
+        background: url("../images/home/blue_orr.png") right top/60% 100% no-repeat;
+        z-index: -1;
+    }
+}

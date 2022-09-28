@@ -1,0 +1,37 @@
+﻿@inject IJSRuntime JsRunTime
+@inject Blazored.LocalStorage.ILocalStorageService localStore;
+@inject NavigationManager NavigationManager
+
+<div hidden="hidden" id="bitski-button"></div>
+<div class="selected_wallet">
+    <RadzenCard class="wallet-card">
+        <div style="width:100%; height:100%; margin: auto;">
+            <RadzenImage Path="img/wallet-icons/bitski.png" Style="width:100%;" />
+        </div>
+        <br />
+        <p class="text-center font_size_32">A simple-to-use wallet that allows you to sign in with an email and password</p>
+    </RadzenCard>
+</div>
+
+@*@if (!string.IsNullOrEmpty(bitski_address))
+    {
+        @bitski_address
+    }*@
+
+@code {
+
+    [Parameter]
+    public string selectedwalletImgpath { get; set; }
+
+    public string bitski_address { get; set; }
+
+    public async Task<string> ConnectBitski()
+    {
+        var address = await JsRunTime.InvokeAsync<string>("WalletLib.BitskiSignIn");
+        await JsRunTime.InvokeAsync<string>("BitskiSignInShow");
+
+        bitski_address = address;
+
+        return bitski_address;
+    }
+}

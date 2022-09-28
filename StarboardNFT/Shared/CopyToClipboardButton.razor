@@ -1,0 +1,93 @@
+﻿@using Services;
+@inject ClipboardService ClipboardService
+
+<p class="font_size_14 text_23" @onclick="CopyToClipboard">
+    <span>@shortText </span>
+    <span>
+        <svg xmlns="http://www.w3.org/2000/svg" width="13.333"
+             height="13.333" viewBox="0 0 13.333 13.333">
+            <g id="icons_Coins_Filled" data-name="icons/Coins/Filled"
+               transform="translate(-1.333 -1.333)">
+                <path id="Shape"
+                      d="M5.992,8.338a.328.328,0,0,0,.487.285A4.667,4.667,0,1,0,.047,2.19a.328.328,0,0,0,.285.487A6.131,6.131,0,0,1,5.992,8.338Z"
+                      transform="translate(5.997 1.333)" fill="#3772ff" />
+                <path id="Shape-2" data-name="Shape"
+                      d="M9.333,4.667A4.667,4.667,0,1,1,4.667,0,4.667,4.667,0,0,1,9.333,4.667Z"
+                      transform="translate(1.333 5.333)" fill="#3772ff" />
+            </g>
+        </svg>
+    </span>
+    @buttonData.ButtonText
+</p>
+<!--<div style="display: inline; margin-right: 15px;">@shortText</div>
+<button style="display: inline; font-size:12px;" class="@buttonData.ButtonClass" disabled="@buttonData.IsDisabled"
+        @onclick="CopyToClipboard">
+    <span class="ml-2">
+        <svg xmlns="http://www.w3.org/2000/svg" width="13.333" height="13.333"
+             viewBox="0 0 13.333 13.333">
+            <g id="icons_Coins_Filled" data-name="icons/Coins/Filled"
+               transform="translate(-1.333 -1.333)">
+                <path id="Shape"
+                      d="M5.992,8.338a.328.328,0,0,0,.487.285A4.667,4.667,0,1,0,.047,2.19a.328.328,0,0,0,.285.487A6.131,6.131,0,0,1,5.992,8.338Z"
+                      transform="translate(5.997 1.333)" fill="#3772ff" />
+                <path id="Shape-2" data-name="Shape"
+                      d="M9.333,4.667A4.667,4.667,0,1,1,4.667,0,4.667,4.667,0,0,1,9.333,4.667Z"
+                      transform="translate(1.333 5.333)" fill="#3772ff" />
+            </g>
+        </svg>
+    </span>-->
+@*<i class="@buttonData.FontAwesomeClass"></i> @buttonData.ButtonText*@
+<!--</button>-->
+
+@code {
+    private const string _successButtonClass = "btn btn-success";
+    private const string _infoButtonClass = "btn btn-info";
+    private const string _errorButtonClass = "btn btn-danger";
+
+    private const string _copyToClipboardText = "Copy";
+    private const string _copiedToClipboardText = "Copied!";
+    private const string _errorText = "Oops. Try again.";
+
+    private const string _fontAwesomeCopyClass = "fa fa-clipboard";
+    private const string _fontAwesomeCopiedClass = "fa fa-check";
+    private const string _fontAwesomeErrorClass = "fa fa-exclamation-circle";
+
+    [Parameter]
+    public string Text { get; set; }
+
+    [Parameter]
+    public string shortText { get; set; }
+
+    record ButtonData(bool IsDisabled, string ButtonText,
+    string ButtonClass, string FontAwesomeClass);
+
+    ButtonData buttonData = new(false, _copyToClipboardText,
+                      _infoButtonClass, _fontAwesomeCopyClass);
+
+    public async Task CopyToClipboard()
+    {
+        var originalData = buttonData;
+        try
+        {
+            await ClipboardService.WriteTextAsync(Text);
+
+            buttonData = new ButtonData(true, _copiedToClipboardText,
+                                    _successButtonClass, _fontAwesomeCopiedClass);
+            await TriggerButtonState();
+            buttonData = originalData;
+        }
+        catch
+        {
+            buttonData = new ButtonData(true, _errorText,
+                                    _errorButtonClass, _fontAwesomeErrorClass);
+            await TriggerButtonState();
+            buttonData = originalData;
+        }
+    }
+
+    private async Task TriggerButtonState()
+    {
+        StateHasChanged();
+        await Task.Delay(TimeSpan.FromMilliseconds(1500));
+    }
+}

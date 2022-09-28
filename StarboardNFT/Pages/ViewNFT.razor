@@ -1,0 +1,460 @@
+﻿@page "/viewnft/{nftDataId}"
+
+@using StarboardNFT.Data;
+@using StarboardNFT.Models;
+
+@inject NotificationService NotificationService
+@inject Blazored.SessionStorage.ISessionStorageService sessionStorage;
+@inject Blazored.LocalStorage.ILocalStorageService localStore
+@inject NavigationManager NavigationManager
+@inject IJSRuntime jsRuntime;
+@inject DialogService DialogService;
+@inject ProfileService ProfileService;
+@inject ActivityService ActivityService;
+
+@inherits OwningComponentBase<AuctionService>
+@using Microsoft.AspNetCore.SignalR.Client
+@using Newtonsoft.Json;
+
+
+<main>
+    <!----------Sound Wave First Section------------------>
+    <section id="sound_wave">
+        <div class="container ">
+            <div class="row py-5 aligh-item-center">
+                <div class="sound_wave_left col-md-6 p-4">
+                    @if (nftData.NFT != null)
+                    {
+                        <img src="data:image/gif;base64,@System.Convert.ToBase64String(nftData.NFT.FileContent)" width="100%" height="500px">
+                        @*<div class="pt-2">
+                            <button class="btn btn-primary rounded-pill px-3 py-1 btn-sm" @onclick="() => OnAddLike(nftData.Id, nftData.NFT.UserProfile.UserProfileHeaderId)">
+                                <i class="fas fa-heart btn-sm"></i>
+                                Like
+                            </button>
+
+                            <button class="btn btn-primary rounded-pill px-3 py-1 btn-sm position-absolute right_25" @onclick="() => OnAddFavorite(nftData.Id, nftData.NFT.UserProfile.UserProfileHeaderId)">
+                                <i class="fa fa-plus btn-sm" aria-hidden="true"></i>
+                                Favorite
+                            </button>
+                        </div>*@
+                    }
+                </div>
+                <div class="sound_wave_right col-md-6 p-4 justify-content-center">
+                    <div class="sound_wave_right_top">
+                        @if (nftData.NFT != null)
+                        {
+                            <h1 class="sound_wave_title" style="position: absolute;">@nftData.NFT.Title</h1>
+                        }
+
+                        <div class="text-right">
+                            <a @onclick="OnReport" style="cursor: pointer; right:auto;" class="btn btn-primary @IsReport rounded-0 px-md-4">Report</a>
+                        </div>
+                    </div>
+
+                    <div class="sound_wave_right_mid p-2 p-md-5 mt-3 mb-3 text-white">
+                        <div class="sound_wave_right_mid_wrap align-items-center">
+                            <div class="row ">
+                                <div class="bid_amount_wrap text-center">
+                                    <h3 class="bid_amount">@localStartDateTime</h3>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!----------More Works Second Section------------------>
+
+    <section id="more_works">
+        <div class="container py-5">
+            <div class="row py-3">
+                <div class="col-md-6">
+                    <p class="text-left more_work_title">More works by bu.damani1</p>
+                </div>
+                <div class="col-md-6">
+                    <div class="view_all_wrap">
+                        <a href="#" class="text-end">View All</a>
+                    </div>
+                </div>
+            </div>
+            <div class="card_list">
+                <div class="row">
+                    <div class="col-md-4 mb-3">
+                        <div class="col__wrapper">
+                            <div class="card text-white bg_transparent border_50 rounded-0">
+                                <div class="img_glash_frame p-4 overflow_hidden">
+                                    <img src="./images/home/Teal_Block.png"
+                                         class="card-img-top w-100 img_cover rounded-0 img_glash_frame--img blur__glass"
+                                         alt="Teal_Block">
+                                    <img class="card-img-top w-100 img_cover rounded-0 position-relative"
+                                         src="./images/home/Teal.png" alt="Teal_Block">
+                                </div>
+                                <div class="card-body">
+                                    <h4 class="card-title text-white text-nowrap">Teal Block</h4>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <div class="card text-white bg_transparent border_50 rounded-0">
+                            <div class="img_glash_frame  p-4 overflow_hidden">
+                                <img src="./images/home/Sound_wave.png"
+                                     class="card-img-top w-100 img_cover rounded-0 img_glash_frame--img blur__glass"
+                                     alt="Sound_wave">
+                                <img class="card-img-top w-100 img_cover rounded-0  position-relative"
+                                     src="./images/home/Sound_wave.png" alt="Sound_wave">
+                            </div>
+                            <div class="card-body">
+                                <h4 class="card-title text-white text-nowrap">Sound Wave Beginning 0</h4>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="card text-white bg_transparent border_50 rounded-0">
+                            <div class="img_glash_frame p-4 overflow_hidden">
+                                <img src="./images/home/Splasherz.png"
+                                     class="card-img-top blur__glass w-100 img_cover rounded-0 img_glash_frame--img"
+                                     alt="Splasherz">
+                                <img class="card-img-top w-100 img_cover rounded-0 position-relative"
+                                     src="./images/home/Splasherz.png" alt="Splasherz">
+                            </div>
+                            <div class="card-body">
+                                <h4 class="card-title text-white text-nowrap">Splasherz X2</h4>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!----------Popular Galas Section------------------>
+    <section id="popular_gala ">
+        <div class="container py-5 ">
+            <div class="gala_wrapper">
+                <h2 class="popular_gala_title py-3">Popular Gala's</h2>
+                <div class="row">
+                    <div class="col-md-4">
+                        <div class="images_list">
+                            <div class="large_image">
+                                <div class="large_image_wrap">
+                                    <img src="images/home/Lays_Spectrum.png" class="w-100">
+                                </div>
+                            </div>
+                            <!------div class="row">
+                                <div class="col-md-4 triple_image">
+                                    <img src="images/home/front@2x.png" >
+                                </div>
+                                <div class="col-md-4 triple_image">
+                                    <img src="images/home/front@2x.png">
+                                </div>
+                                <div class="col-md-4 triple_image">
+                                    <img src="images/home/front@2x.png">
+                                </div>
+                            </div---->
+                        </div>
+
+
+                        <div class="triple_image_info p-2">
+                            <div class="triple_image_title">
+                                <h2>Get the invite</h2>
+                            </div>
+                            <div class="row galas_profile">
+                                <div class="col-md-3 col-3">
+                                    <div class="galas_img_wrap">
+                                        <img src="images/home/profile_2.png">
+                                    </div>
+                                </div>
+                                <div class="col-md-6 col-6">
+                                    <div class="profile_title_wrap">
+                                        <div class="profile_title">
+                                            <p>Text goes here</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-3 col-3">
+                                    <div class="galas_profile_btn">
+                                        <a href="#">Accept</a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="images_list">
+                            <div class="large_image">
+                                <div class="large_image_wrap">
+                                    <img src="images/home/Lays_Spectrum.png" class="w-100">
+                                </div>
+                            </div>
+                            <!------div class="row">
+                                <div class="col-md-4 triple_image">
+                                    <img src="images/home/front@2x.png" >
+                                </div>
+                                <div class="col-md-4 triple_image">
+                                    <img src="images/home/front@2x.png">
+                                </div>
+                                <div class="col-md-4 triple_image">
+                                    <img src="images/home/front@2x.png">
+                                </div>
+                            </div---->
+                        </div>
+
+
+                        <div class="triple_image_info p-2">
+                            <div class="triple_image_title">
+                                <h2>Mattiss</h2>
+                            </div>
+                            <div class="row galas_profile">
+                                <div class="col-md-3 col-3">
+                                    <div class="galas_img_wrap">
+                                        <img src="images/home/profile_1.png">
+                                    </div>
+                                </div>
+                                <div class="col-md-6 col-6">
+                                    <div class="profile_title_wrap">
+                                        <div class="profile_title">
+                                            <p>Text goes here</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-3 col-3">
+                                    <div class="galas_profile_btn">
+                                        <a href="#">Accept</a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="images_list">
+                            <div class="large_image">
+                                <div class="large_image_wrap">
+                                    <img src="images/home/Lays_Spectrum.png" class="w-100">
+                                </div>
+                            </div>
+                            <!------div class="row">
+                                <div class="col-md-4 triple_image">
+                                    <img src="images/home/front@2x.png" >
+                                </div>
+                                <div class="col-md-4 triple_image">
+                                    <img src="images/home/front@2x.png">
+                                </div>
+                                <div class="col-md-4 triple_image">
+                                    <img src="images/home/front@2x.png">
+                                </div>
+                            </div---->
+                        </div>
+
+
+                        <div class="triple_image_info p-2">
+                            <div class="triple_image_title">
+                                <h2>Smart You Got In</h2>
+                            </div>
+                            <div class="row galas_profile">
+                                <div class="col-md-3 col-3">
+                                    <div class="galas_img_wrap">
+                                        <img src="images/home/profile_3.png">
+                                    </div>
+                                </div>
+                                <div class="col-md-6 col-6">
+                                    <div class="profile_title_wrap">
+                                        <div class="profile_title">
+                                            <p>Text goes here</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-3 col-3">
+                                    <div class="galas_profile_btn">
+                                        <a href="#">Accept</a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+</main>
+<!----------Footer Section------------------>
+
+@code {
+    [Parameter]
+    public string nftDataId { get; set; }
+    public string _nftDataId { get; set; }
+
+    public string IsDisabled { get; set; }
+
+    public bool IsEmailDisabled { get; set; }
+    public string IsReport { get; set; }
+
+    AuctionBidQueue auctionBid = new AuctionBidQueue();
+    NFTData nftData = new NFTData();
+
+    IEnumerable<AuctionBid> AuctionBidList;
+
+    private HubConnection hubConnection;
+    public Auction updatedAuction;
+
+    public string selected_account_addr { get; set; }
+    Guid profileheader_Id = Guid.Empty;
+
+    decimal bidPrice = 0;
+    decimal listPrice = 0;
+    decimal buyoutPrice = 0;
+    decimal maxBidPrice = 0;
+
+    public string startDateTimeStr { get; set; }
+    public DateTime localStartDateTime;
+
+    public int bidCount { get; set; }
+
+    UserProfileHeader CurrentUserProfileInfo = new UserProfileHeader();
+    public Report report = new Report();
+
+    // define a class to support the dropdown
+    public class EnumMyTypes
+    {
+        public Report.ReportReasonItems EnumValue { get; set; }
+        public string EnumName { get; set; }
+    }
+    // list for the dropdown
+    List<EnumMyTypes> MyTypes { get; set; } = new List<EnumMyTypes>();
+    TimeSpan leftTime = new TimeSpan(1, 12, 23, 62);
+    private static System.Timers.Timer leftTimer;
+    private static System.Timers.Timer aTimer;
+    private static System.Timers.Timer bTimer;
+    private bool bChangeTimer = false;
+
+    string userEmail = "";
+    bool timeEnded = false;
+
+    protected async override Task OnInitializedAsync()
+    {
+        nftDataId = nftDataId.Replace('-', '/');
+        var reconstructedGuid = new Guid(Convert.FromBase64String(nftDataId + "=="));
+        _nftDataId = reconstructedGuid.ToString();
+        // load the list
+
+        foreach (Report.ReportReasonItems item in Enum.GetValues(typeof(Report.ReportReasonItems)))
+        {
+            MyTypes.Add(new EnumMyTypes { EnumName = item.ToString(), EnumValue = item });
+        }
+
+        nftData = await Service.GetNFTDataById(new Guid(_nftDataId));
+        localStartDateTime = ((DateTime)nftData.SaleStartDate).ToLocalTime();
+        //IEnumerable<Report> colorSchemes = Enum.GetValues(typeof(ColorScheme)).Cast<ColorScheme>();
+
+        //startDateTimeStr = string.Format("{0:%m} minute(s) {0:%s} seconds", localStartDateTime);
+        //ColorScheme colorScheme = ColorScheme.Palette;
+
+        IsDisabled = "enabled";
+
+        StateHasChanged();
+    }
+
+    protected async override Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            profileheader_Id = await localStore.GetItemAsync<Guid>("headerId");
+            string userId = profileheader_Id.ToString();
+
+            if (nftData.NFT.UserProfile.UserProfileHeaderId == profileheader_Id)
+                IsReport = "invisible";
+            else
+                IsReport = "visible";
+
+            CurrentUserProfileInfo = await ProfileService.GetProfileAsync(profileheader_Id);
+
+            if (CurrentUserProfileInfo.Email != null)
+            {
+                userEmail = CurrentUserProfileInfo.Email;
+                IsEmailDisabled = true;
+            }
+            else
+                IsEmailDisabled = false;
+
+            var selected_account_addr = await localStore.GetItemAsync<string>("address");
+
+            StateHasChanged();
+
+            StateHasChanged();
+        }
+    }
+
+    async Task OnReport()
+    {
+        await ShowReportDialog();
+    }
+
+    void ShowNotification(NotificationMessage message)
+    {
+        NotificationService.Notify(message);
+    }
+
+    async Task ShowReportDialog() => await DialogService.OpenAsync("Report Dialog", ds =>
+    @<div>
+        <h3 Style="margin-bottom: 1rem">Report</h3>
+        <div class="row" style="margin-top: 2rem;">
+            <div class="col-md-4">
+                <h5 style="margin-top: .2rem; margin-right: 2rem; display: inline;">Reason : </h5>
+            </div>
+            <div class="col-md-5">
+                <RadzenDropDown Data="@MyTypes" TextProperty="EnumName" ValueProperty="EnumValue" @bind-Value="report.ReportReason" Style="width:100%;" />
+            </div>
+        </div>
+        <div class="row" style="margin-top: 2rem;">
+            <div class="col-md-4">
+                <h5 style="margin-top: .2rem; margin-right: 2rem; display: inline;">Email : </h5>
+            </div>
+            <div class="col-md-5">
+                <RadzenTextBox AllowClear="true" TValue="string" ReadOnly="@IsEmailDisabled" @bind-Value="@userEmail" Style="width:100%;" />
+            </div>
+        </div>
+        <div class="row" style="margin-top: 2rem;">
+            <div class="col-md-4">
+                <h5 style="margin-top: .2rem; margin-right: 2rem; display: inline;">Description : </h5>
+            </div>
+            <div class="col-md-7">
+                <RadzenTextArea AllowClear="true" TValue="string" @bind-Value="report.ReportDescription" Style="width:100%;" />
+            </div>
+        </div>
+        <div class="row" style="margin-top: 20px;">
+            <div class="col-md-11" style="justify-content: flex-end; display: flex;">
+                <RadzenButton Text="Submit" Click="() => OnReportSubmit()" Style="margin-bottom: 10px; width: 150px" ButtonStyle="ButtonStyle.Secondary" />
+                <RadzenButton Text="Cancel" Click="() => ds.Close(false)" Style="margin-bottom: 10px; width: 150px; margin-left: 15px;" />
+            </div>
+        </div>
+    </div>);
+
+    void OnChange(object value, string name)
+    {
+    }
+
+    async Task OnReportSubmit()
+    {
+        report.ReporterEmail = userEmail;
+        report.ReportedUserId = profileheader_Id;
+
+        await Service.AddNewReport(report);
+
+        // Close the dialog
+        DialogService.Close();
+
+        StateHasChanged();
+    }
+
+    private async Task OnAddLike(Guid NftDataId, Guid UserProfileHeaderId)
+    {
+        await ActivityService.SaveLikeNFTActivity(NftDataId, profileheader_Id);
+    }
+
+    private async Task OnAddFavorite(Guid NftDataId, Guid UserProfileHeaderId)
+    {
+        await ActivityService.SaveFavoriteNFT(NftDataId, UserProfileHeaderId);
+    }
+}

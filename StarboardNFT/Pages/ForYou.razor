@@ -1,0 +1,1304 @@
+﻿@page "/foryou"
+
+@using StarboardNFT.Data
+@using StarboardNFT.Models
+
+@inject NavigationManager NavigationManager
+@inject NFTService NFTService
+@inject AuctionService AuctionService
+@inject ProfileService ProfileService
+@inject NotificationService NotificationService
+@inject DialogService DialogService;
+@inject ActivityService ActivityService;
+@inject Blazored.LocalStorage.ILocalStorageService localStore
+@inject WeatherForecastService ForecastService
+
+<main>
+    <section id="section__feed" class="mt-3">
+        <div class="container">
+            <div class="row justify-content-center">
+                <div class="col-12 col-lg-6 ">
+
+                    <ul class="nav nav-tabs" id="myTab" role="tablist">
+                        <li class="nav-item" role="presentation">
+                            <a class="nav-link text-black active" id="home-tab" data-toggle="tab" href="#for_you"
+                               role="tab" aria-controls="for_you" aria-selected="true" @onclick="OnForYouClick">
+
+                                For You
+                                <img src="./img/feed/heart.png" height="30px" alt="heart">
+                            </a>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <a class="nav-link text-black" id="staff_picks-tab" data-toggle="tab"
+                               href="#staff_picks" @onclick="OnStaffPicksClick" role="tab" aria-controls="staff_picks"
+                               aria-selected="false">
+                                Staff Picks
+
+                                <img src="./img/feed/staff.png" height="30px" alt="heart">
+                            </a>
+                        </li>
+                    </ul>
+                    <div class="tab-content my-3" id="myTabContent">
+                        <div class="tab-pane fade show active" id="for_you" role="tabpanel"
+                             aria-labelledby="for_you-tab">
+                            <!--<Sve.Blazor.InfiniteScroll.Components.InfiniteScroll ObserverTargetId="observerTarget" ObservableTargetReached="(e) => FetchForecasts()">
+                                <ul>
+                                    @foreach (var forecast in forecasts)
+                                    {
+                                        <li class="list-group-item">@forecast.Date: @forecast.TemperatureC-@forecast.TemperatureF (@forecast.Summary)</li>
+                                    }-->
+
+                                    @*The target element that we observe. Once this is reached the callback will be triggered.*@
+                                    <!--<li class="list-group-item" id="observerTarget"></li>
+                                </ul>
+                            </Sve.Blazor.InfiniteScroll.Components.InfiniteScroll>-->
+                            <InfiniteScroll ObserverTargetId="observerTarget" ObservableTargetReached="FetchForYouList">
+                            <ul class="list-group">
+                                @foreach (var nft_data in NFTDataForYouList)
+                                {
+                                    <li class="list-group-item bg_transparent border-0">
+                                        <div class="d-flex">
+                                            <div class="user_icon mr-3">
+                                                @if (nft_data.NFT.UserProfile.UserProfileHeader.UserPhoto != null)
+                                                {
+                                                    <img src="data:image/gif;base64,@System.Convert.ToBase64String(nft_data.NFT.UserProfile.UserProfileHeader.UserPhoto)" height="40px" alt="user">
+                                                }
+                                                else
+                                                {
+                                                    <img src="./img/feed/user_icon.png" height="40px" alt="user">
+                                                }
+                                            </div>
+                                            <div class="card shadow-sm collectors_card bg_transparent border-0 d-inline-block bg_e6 mb-5 "
+                                                 style="opacity: 1!important">
+                                                <div class="card-header p-0 border-0  bg_transparent collectors_card_header position-relative h-auto">
+                                                    <div class="bg_e6 d-flex justify-content-between align-items-center px-3">
+                                                        <span>@nft_data.NFT.Title</span>
+
+                                                        <div class="dropdown">
+                                                            <button class="btn btn-muted border-0 outline-0 focus_shadow_off"
+                                                                    data-toggle="dropdown">
+                                                                <svg xmlns="http://www.w3.org/2000/svg"
+                                                                     xmlns:xlink="http://www.w3.org/1999/xlink"
+                                                                     width="30" height="40" viewBox="0 0 181 181">
+                                                                    <image id="icons8-ellipsis" width="181" height="181"
+                                                                           xlink:href="data:image/png;base64,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" />
+                                                                </svg>
+                                                            </button>
+                                                            <ul class="dropdown-menu dropdown_menu_hover py-0 dropdown-menu-right">
+                                                                <li>
+                                                                    <button class="btn btn-muted w-100 border-0 outline-0 focus_shadow_off rounded-0" @onclick="() => OnInformation(nft_data)">
+                                                                        Information
+                                                                    </button>
+                                                                </li>
+                                                                <li>
+                                                                    <button class="btn btn-muted w-100 border-0 outline-0 focus_shadow_off rounded-0" @onclick="() => OnReport()">
+                                                                        Report
+                                                                    </button>
+                                                                </li>
+                                                                <li>
+                                                                    <button class="btn btn-muted w-100 border-0 outline-0 focus_shadow_off rounded-0" @onclick="() => OnUnFollowUser(nft_data.NFT.UserProfile.UserProfileHeader)">
+                                                                        Unfollow
+                                                                    </button>
+                                                                </li>
+                                                            </ul>
+                                                        </div>
+                                                    </div>
+                                                    @if (nft_data.NFT.FileContent != null)
+                                                    {
+                                                        <img src="data:image/gif;base64,@System.Convert.ToBase64String(nft_data.NFT.FileContent)" class="list_posting_sm_size w-100" style="object-fit: cover; opacity: 1!important; height: 350px;">
+                                                    }
+                                                    else
+                                                    {
+                                                        <img src="./img/feed/post_man.png" class="list_posting_sm_size w-100" style="object-fit: cover; opacity: 1!important; height: 350px;">
+                                                    }
+                                                </div>
+                                                <div class="card-body bg_e6 px-3 py-3 mt-n3">
+                                                    <div class="d-flex justify-content-between mb-2">
+                                                        <span>
+                                                            @nft_data.NFT.Title
+                                                        </span>
+                                                        <span class="font_size_14 font-weight-bold  d-inline-block px-1 rounded-lg  ">
+
+                                                            <img src="./img/feed/eth.png" height="20px" alt="eth">
+                                                            @(Math.Round(nft_data.Auctions.FirstOrDefault().CurrentBidPrice / Startup.CoinPriceDict["ETH"], 8, MidpointRounding.AwayFromZero).ToString().TrimEnd('0') + " ETH")
+                                                        </span>
+                                                    </div>
+
+                                                    <div class="d-flex justify-content-between mb-2 font_size_14 opacity_35">
+                                                        <div class="content">
+                                                            <span>Last Sold For</span>
+                                                            <span>
+                                                                @(nft_data.EthPurchaseAmount / Startup.CoinPriceDict["ETH"] + " ETH")
+                                                            </span>
+                                                        </div>
+
+                                                    </div>
+
+                                                    <div class="d-flex justify-content-between mb-2 font_size_14 ">
+                                                        <div class="content">
+                                                            <button class="btn btn-muted p-1 focus_shadow_off text-black">
+                                                                <b>#art-keywords </b>
+                                                            </button>
+                                                            <button class="btn btn-muted p-1 focus_shadow_off text-black">
+                                                                <b>#art </b>
+                                                            </button>
+                                                        </div>
+                                                        <div class="flex_control">
+                                                            <button class="btn btn-muted focus_shadow_off p-1 mb-2" @onclick="() => OnPlaceBidByNFTDataId(nft_data.Id)">
+                                                                <img height="20px" src="./img/feed/share.png"
+                                                                     alt="share">
+                                                            </button>
+                                                            @if (AllLikesNFTDataIDs.Contains(nft_data.Id))
+                                                            {
+                                                                <button class="btn btn-muted focus_shadow_off p-1 mb-2" @onclick="() => OnUnLikeNFT(nft_data.Id, nft_data.NFT.UserProfile.UserProfileHeaderId)">
+                                                                    <img height="20px" src="./img/feed/heart.png"
+                                                                         alt="heart">
+                                                                </button>
+                                                            }
+                                                            else 
+                                                            {
+                                                                <button class="btn btn-muted focus_shadow_off p-1 mb-2" @onclick="() => OnLikeNFT(nft_data.Id, nft_data.NFT.UserProfile.UserProfileHeaderId)">
+                                                                    <img height="20px" src="./img/feed/heart_w.png"
+                                                                         alt="heart_w">
+                                                                </button>
+                                                            }
+                                                            
+                                                            <button class="btn btn-muted focus_shadow_off p-1 mb-2" @onclick="() => OnShareLink(nft_data.Id)">
+                                                                <img height="20px" src="./img/feed/import.png"
+                                                                     alt="import">
+                                                            </button>
+
+                                                        </div>
+
+                                                    </div>
+
+                                                </div>
+
+                                            </div>
+                                        </div>
+                                    </li>
+                                }
+                                @*The target element that we observe. Once this is reached the callback will be triggered.*@
+                                <li class="list-group-item" id="observerTarget"></li>
+                            </ul>
+                            </InfiniteScroll>
+                            @*@foreach (var nft_data in NFTDataForYouList)
+                                {
+                                    <li class="list-group-item bg_transparent border-0">
+                                        <div class="d-flex">
+                                            <div class="user_icon mr-3">
+                                                @if (nft_data.NFT.UserProfile.UserProfileHeader.UserPhoto != null)
+                                                {
+                                                    <img src="data:image/gif;base64,@System.Convert.ToBase64String(nft_data.NFT.UserProfile.UserProfileHeader.UserPhoto)" height="40px" alt="user">
+                                                }
+                                                else
+                                                {
+                                                    <img src="./img/feed/user_icon.png" height="40px" alt="user">
+                                                }
+                                            </div>
+                                            <div class="card shadow-sm collectors_card bg_transparent border-0 d-inline-block bg_e6 mb-5 "
+                                                 style="opacity: 1!important">
+                                                <div class="card-header p-0 border-0  bg_transparent collectors_card_header position-relative h-auto">
+                                                    <div class="bg_e6 d-flex justify-content-between align-items-center px-3">
+                                                        <span>@nft_data.NFT.Title</span>
+
+                                                        <div class="dropdown">
+                                                            <button class="btn btn-muted border-0 outline-0 focus_shadow_off"
+                                                                    data-toggle="dropdown">
+                                                                <svg xmlns="http://www.w3.org/2000/svg"
+                                                                     xmlns:xlink="http://www.w3.org/1999/xlink"
+                                                                     width="30" height="40" viewBox="0 0 181 181">
+                                                                    <image id="icons8-ellipsis" width="181" height="181"
+                                                                           xlink:href="data:image/png;base64,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" />
+                                                                </svg>
+                                                            </button>
+                                                            <ul class="dropdown-menu dropdown_menu_hover py-0 dropdown-menu-right">
+                                                                <li>
+                                                                    <button class="btn btn-muted w-100 border-0 outline-0 focus_shadow_off rounded-0" @onclick="() => OnInformation(nft_data)">
+                                                                        Information
+                                                                    </button>
+                                                                </li>
+                                                                <li>
+                                                                    <button class="btn btn-muted w-100 border-0 outline-0 focus_shadow_off rounded-0" @onclick="() => OnReport()">
+                                                                        Report
+                                                                    </button>
+                                                                </li>
+                                                                <li>
+                                                                    <button class="btn btn-muted w-100 border-0 outline-0 focus_shadow_off rounded-0" @onclick="() => OnUnFollowUser(nft_data.NFT.UserProfile.UserProfileHeader)">
+                                                                        Unfollow
+                                                                    </button>
+                                                                </li>
+                                                            </ul>
+                                                        </div>
+                                                    </div>
+                                                    @if (nft_data.NFT.FileContent != null)
+                                                    {
+                                                        <img src="data:image/gif;base64,@System.Convert.ToBase64String(nft_data.NFT.FileContent)" class="list_posting_sm_size w-100" style="object-fit: cover; opacity: 1!important; height: 350px;">
+                                                    }
+                                                    else
+                                                    {
+                                                        <img src="./img/feed/post_man.png" class="list_posting_sm_size w-100" style="object-fit: cover; opacity: 1!important; height: 350px;">
+                                                    }
+                                                </div>
+                                                <div class="card-body bg_e6 px-3 py-3 mt-n3">
+                                                    <div class="d-flex justify-content-between mb-2">
+                                                        <span>
+                                                            @nft_data.NFT.Title
+                                                        </span>
+                                                        <span class="font_size_14 font-weight-bold  d-inline-block px-1 rounded-lg  ">
+
+                                                            <img src="./img/feed/eth.png" height="20px" alt="eth">
+                                                            @(nft_data.Auctions.FirstOrDefault().CurrentBidPrice / Startup.CoinPriceDict["ETH"] + " ETH")
+                                                        </span>
+                                                    </div>
+
+                                                    <div class="d-flex justify-content-between mb-2 font_size_14 opacity_35">
+                                                        <div class="content">
+                                                            <span>Last Sold For</span>
+                                                            <span>
+                                                                @(nft_data.EthPurchaseAmount / Startup.CoinPriceDict["ETH"] + " ETH")
+                                                            </span>
+                                                        </div>
+
+                                                    </div>
+
+                                                    <div class="d-flex justify-content-between mb-2 font_size_14 ">
+                                                        <div class="content">
+                                                            <button class="btn btn-muted p-1 focus_shadow_off text-black">
+                                                                <b>#art-keywords </b>
+                                                            </button>
+                                                            <button class="btn btn-muted p-1 focus_shadow_off text-black">
+                                                                <b>#art </b>
+                                                            </button>
+                                                        </div>
+                                                        <div class="flex_control">
+                                                            <button class="btn btn-muted focus_shadow_off p-1 mb-2" @onclick="() => OnPlaceBidByNFTDataId(nft_data.Id)">
+                                                                <img height="20px" src="./img/feed/share.png"
+                                                                     alt="share">
+                                                            </button>
+                                                            <button class="btn btn-muted focus_shadow_off p-1 mb-2" @onclick="() => OnLikeNFT(nft_data.Id, nft_data.NFT.UserProfile.UserProfileHeaderId)">
+                                                                <img height="20px" src="./img/feed/heart_w.png"
+                                                                     alt="heart_w">
+                                                            </button>
+                                                            <button class="btn btn-muted focus_shadow_off p-1 mb-2" @onclick="() => OnShareLink(nft_data.Id)">
+                                                                <img height="20px" src="./img/feed/import.png"
+                                                                     alt="import">
+                                                            </button>
+
+                                                        </div>
+
+                                                    </div>
+
+                                                </div>
+
+                                            </div>
+                                        </div>
+                                    </li>
+                                }*@
+
+                            @*<li class="list-group-item bg_transparent border-0">
+                                    <div class="d-flex">
+                                        <div class="user_icon mr-3 invisible">
+                                            <img src="./img/feed/user_icon.png" height="40px" alt="user">
+                                        </div>
+                                        <div class="card border-0 text-white bg_e6 p-3 py-5 px-md-4 position-relative">
+                                            <div class="design_card_wrapper">
+                                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20"
+                                                     viewBox="0 0 110 105">
+                                                    <g id="Ellipse_3" data-name="Ellipse 3" fill="#ddd"
+                                                       stroke="#7e6a19" stroke-width="7">
+                                                        <ellipse cx="55" cy="52.5" rx="55" ry="52.5"
+                                                                 stroke="none" />
+                                                        <ellipse cx="55" cy="52.5" rx="51.5" ry="49" fill="none" />
+                                                    </g>
+                                                </svg>
+                                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20"
+                                                     viewBox="0 0 110 105">
+                                                    <g id="Ellipse_3" data-name="Ellipse 3" fill="#ddd"
+                                                       stroke="#7e6a19" stroke-width="7">
+                                                        <ellipse cx="55" cy="52.5" rx="55" ry="52.5"
+                                                                 stroke="none" />
+                                                        <ellipse cx="55" cy="52.5" rx="51.5" ry="49" fill="none" />
+                                                    </g>
+                                                </svg>
+                                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20"
+                                                     viewBox="0 0 110 105">
+                                                    <g id="Ellipse_3" data-name="Ellipse 3" fill="#ddd"
+                                                       stroke="#7e6a19" stroke-width="7">
+                                                        <ellipse cx="55" cy="52.5" rx="55" ry="52.5"
+                                                                 stroke="none" />
+                                                        <ellipse cx="55" cy="52.5" rx="51.5" ry="49" fill="none" />
+                                                    </g>
+                                                </svg>
+                                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20"
+                                                     viewBox="0 0 110 105">
+                                                    <g id="Ellipse_3" data-name="Ellipse 3" fill="#ddd"
+                                                       stroke="#7e6a19" stroke-width="7">
+                                                        <ellipse cx="55" cy="52.5" rx="55" ry="52.5"
+                                                                 stroke="none" />
+                                                        <ellipse cx="55" cy="52.5" rx="51.5" ry="49" fill="none" />
+                                                    </g>
+                                                </svg>
+
+                                            </div>
+                                            <div class="card-header bg_62 text-white border-0">
+                                                <div class="d-flex justify-content-between">
+                                                    <div class="flex_box d-flex flex-grow-1">
+                                                        <img height="40px" src="./img/feed/santas.png" alt="santas">
+                                                        <div class="content_box  ml-2">
+                                                            <strong class="text-white">
+                                                                Forgotten Runes Wizard Cult
+                                                            </strong>
+                                                            <br>
+                                                            <p class="text-white">
+                                                                Chaos Mage Davos of the
+                                                                Quantum Shadow
+
+                                                            </p>
+                                                        </div>
+                                                    </div>
+                                                    <div class="flex_box ml-3">
+                                                        <button class="btn btn-muted p-0 focus_shadow_off px-0">
+                                                            <svg id="Group_127" data-name="Group 127"
+                                                                 xmlns="http://www.w3.org/2000/svg" height="30.913"
+                                                                 viewBox="0 0 110.43 99.913">
+                                                                <g id="Background_Color"
+                                                                   data-name="Background Color" stroke="#000"
+                                                                   stroke-miterlimit="10" stroke-width="2">
+                                                                    <rect width="110.43" height="99.913" rx="12"
+                                                                          stroke="none" />
+                                                                    <rect x="1" y="1" width="108.43" height="97.913"
+                                                                          rx="11" fill="none" />
+                                                                </g>
+                                                                <text id="Title" transform="translate(53.64 69.95)"
+                                                                      fill="#fff" font-size="62"
+                                                                      font-family="SegoeUI, Segoe UI">
+                                                                    <tspan x="-7.508" y="0">i</tspan>
+                                                                </text>
+                                                            </svg>
+
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="card-body bg_62">
+
+                                                <ul class="list-unstyled d-flex flex-wrap">
+                                                    <li class="mb-2 mr-2  p-2 bg-white text-center">
+                                                        <strong>
+                                                            <span>55ETH</span>
+                                                            <br>
+                                                            Volume Traded
+                                                        </strong>
+                                                    </li>
+                                                    <li class="mb-2 mr-2  p-2 bg-white text-center">
+                                                        <strong>
+                                                            <span>55ETH</span>
+                                                            <br>
+                                                            Volume Traded
+                                                        </strong>
+                                                    </li>
+                                                    <li class="mb-2 mr-2  p-2 bg-white text-center">
+                                                        <strong>
+                                                            <span>55ETH</span>
+                                                            <br>
+                                                            Volume Traded
+                                                        </strong>
+                                                    </li>
+                                                    <li class="mb-2 mr-2  p-2 bg-white text-center">
+                                                        <strong>
+                                                            <span>55ETH</span>
+                                                            <br>
+                                                            Volume Traded
+                                                        </strong>
+                                                    </li>
+                                                </ul>
+
+                                                <img src="./img/feed/san_tree.png" alt=""
+                                                     class="w-100 size_cover santas_tree_size" height="400px">
+
+                                            </div>
+                                            <div class="card-footer border-0 bg_transparent">
+                                                <div class="text-center mt-1">
+                                                    <img src="./img/feed/owned_by.png" alt="owned_by" height="35px">
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                    </div>
+                                </li>*@
+                        </div>
+                        <div class="tab-pane fade" id="staff_picks" role="tabpanel"
+                             aria-labelledby="staff_picks-tab">
+                            @if (NFTDataStaffPicksList.Count > 0)
+                            {
+                                <InfiniteScroll ObserverTargetId="observerTargetStaffPicks" ObservableTargetReached="(e) => FetchStaffPicksList()">
+                                    <ul class="list-group">
+                                        @foreach (var nft_data in NFTDataStaffPicksList)
+                                        {
+                                            <li class="list-group-item bg_transparent border-0">
+                                                <div class="d-flex">
+                                                    <div class="user_icon mr-3">
+                                                        @if (nft_data.NFT.UserProfile.UserProfileHeader.UserPhoto != null)
+                                                        {
+                                                            <img src="data:image/gif;base64,@System.Convert.ToBase64String(nft_data.NFT.UserProfile.UserProfileHeader.UserPhoto)" height="40px" alt="user">
+                                                        }
+                                                        else
+                                                        {
+                                                            <img src="./img/feed/user_icon.png" height="40px" alt="user">
+                                                        }
+                                                    </div>
+                                                    <div class="card shadow-sm collectors_card bg_transparent border-0 d-inline-block bg_e6 mb-5 "
+                                                         style="opacity: 1!important">
+                                                        <div class="card-header p-0 border-0  bg_transparent collectors_card_header position-relative h-auto">
+                                                            <div class="bg_e6 d-flex justify-content-between align-items-center px-3">
+                                                                <span>@nft_data.NFT.Title</span>
+
+                                                                <div class="dropdown">
+                                                                    <button class="btn btn-muted border-0 outline-0 focus_shadow_off"
+                                                                            data-toggle="dropdown">
+                                                                        <svg xmlns="http://www.w3.org/2000/svg"
+                                                                             xmlns:xlink="http://www.w3.org/1999/xlink"
+                                                                             width="30" height="40" viewBox="0 0 181 181">
+                                                                            <image id="icons8-ellipsis" width="181" height="181"
+                                                                                   xlink:href="data:image/png;base64,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" />
+                                                                        </svg>
+                                                                    </button>
+                                                                    <ul class="dropdown-menu dropdown_menu_hover py-0 dropdown-menu-right">
+                                                                        <li>
+                                                                            <button class="btn btn-muted w-100 border-0 outline-0 focus_shadow_off rounded-0" @onclick="() => OnInformation(nft_data)">
+                                                                                Information
+                                                                            </button>
+                                                                        </li>
+                                                                        <li>
+                                                                            <button class="btn btn-muted w-100 border-0 outline-0 focus_shadow_off rounded-0" @onclick="() => OnReport()">
+                                                                                Report
+                                                                            </button>
+                                                                        </li>
+                                                                        <li>
+                                                                            <button class="btn btn-muted w-100 border-0 outline-0 focus_shadow_off rounded-0" @onclick="() => OnFollowUser(nft_data.NFT.UserProfile.UserProfileHeader.Id)">
+                                                                                Follow
+                                                                            </button>
+                                                                        </li>
+                                                                    </ul>
+                                                                </div>
+                                                            </div>
+                                                            @if (nft_data.NFT.FileContent != null)
+                                                            {
+                                                                <img src="data:image/gif;base64,@System.Convert.ToBase64String(nft_data.NFT.FileContent)" class="list_posting_sm_size w-100" style="object-fit: cover; opacity: 1!important; height: 350px;">
+                                                            }
+                                                            else
+                                                            {
+                                                                <img src="./img/feed/post_man.png" class="list_posting_sm_size w-100" style="object-fit: cover; opacity: 1!important; height: 350px;">
+                                                            }
+                                                        </div>
+                                                        <div class="card-body bg_e6 px-3 py-3 mt-n3">
+                                                            <div class="d-flex justify-content-between mb-2">
+                                                                <span>
+                                                                    @nft_data.NFT.Title
+                                                                </span>
+                                                                <span class="font_size_14 font-weight-bold  d-inline-block px-1 rounded-lg  ">
+
+                                                                    <img src="./img/feed/eth.png" height="20px" alt="eth">
+                                                                    @if (@nft_data.Auctions == null)
+                                                                    {
+                                                                        @(Math.Round(nft_data.FiatStartPrice / Startup.CoinPriceDict["ETH"], 8, MidpointRounding.AwayFromZero).ToString().TrimEnd('0') + " ETH")
+                                                                    }
+                                                                    else
+                                                                    {
+                                                                        @(Math.Round(nft_data.Auctions.FirstOrDefault().CurrentBidPrice / Startup.CoinPriceDict["ETH"], 8, MidpointRounding.AwayFromZero).ToString().TrimEnd('0') + " ETH")
+                                                                    }
+                                                                </span>
+                                                            </div>
+
+                                                            <div class="d-flex justify-content-between mb-2 font_size_14 opacity_35">
+                                                                <div class="content">
+                                                                    <span>Last Sold For</span>
+                                                                    <span>
+                                                                        @(nft_data.EthPurchaseAmount / Startup.CoinPriceDict["ETH"] + " ETH")
+                                                                    </span>
+                                                                    <span>ETH</span>
+                                                                </div>
+
+                                                            </div>
+
+                                                            <div class="d-flex justify-content-between mb-2 font_size_14 ">
+                                                                <div class="content">
+                                                                    <button class="btn btn-muted p-1 focus_shadow_off text-black">
+                                                                        <b>#art-keywords </b>
+                                                                    </button>
+                                                                    <button class="btn btn-muted p-1 focus_shadow_off text-black">
+                                                                        <b>#art </b>
+                                                                    </button>
+                                                                </div>
+                                                                <div class="flex_control">
+                                                                    <button class="btn btn-muted focus_shadow_off p-1 mb-2" @onclick="() => OnPlaceBidByNFTDataId(nft_data.Id)">
+                                                                        <img height="20px" src="./img/feed/share.png"
+                                                                             alt="share">
+                                                                    </button>
+                                                                    @if (AllLikesNFTDataIDs.Contains(nft_data.Id))
+                                                                    {
+                                                                        <button class="btn btn-muted focus_shadow_off p-1 mb-2" @onclick="() => OnUnLikeNFT(nft_data.Id, nft_data.NFT.UserProfile.UserProfileHeaderId)">
+                                                                            <img height="20px" src="./img/feed/heart.png"
+                                                                                 alt="heart">
+                                                                        </button>
+                                                                    }
+                                                                    else
+                                                                    {
+                                                                        <button class="btn btn-muted focus_shadow_off p-1 mb-2" @onclick="() => OnLikeNFT(nft_data.Id, nft_data.NFT.UserProfile.UserProfileHeaderId)">
+                                                                            <img height="20px" src="./img/feed/heart_w.png"
+                                                                                 alt="heart_w">
+                                                                        </button>
+                                                                    }
+                                                                    <button class="btn btn-muted focus_shadow_off p-1 mb-2">
+                                                                        <img height="20px" src="./img/feed/import.png"
+                                                                             alt="import">
+                                                                    </button>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+
+                                                    </div>
+                                                </div>
+                                            </li>
+                                        }
+                                        <li class="list-group-item" id="observerTargetStaffPicks"></li>
+                                    </ul>
+                                </InfiniteScroll>
+                            }
+                        </div>
+                    </div>
+                </div>
+                <div class="d-none d-lg-block col-lg-5 col_right">
+                    <aside>
+                        <div class="card card_right_1 border-0 bg_e6 pb-3 mb-5 w-100">
+                            <div class="card-header">
+                                @if (featuredProfile != null)
+                                {
+                                    <h4 class="text-white">
+                                        Posted By: (@featuredProfile.UserName)
+                                    </h4>
+                                }
+                                <img height="80px" src="./img/feed/subboat.png" alt="subboat">
+                            </div>
+                            <div class="card-body mt-3">
+                                <div class="card_hastag">
+                                    <b class="px-2">#featured</b>
+                                    <b class="px-2">#artist</b>
+                                </div>
+                            </div>
+                            <div class="card-footer border-0 bg_e6">
+                                <button class="btn btn-dark bg-black w-100" @onclick="(() => OnGoAuction())">
+                                    <h4 class="text-white">
+                                        Explore
+                                    </h4>
+                                </button>
+                            </div>
+                        </div>
+
+
+                        <div class="card  border-0 bg_e6 pb-3 mb-5 w-100">
+                            <div class="card-header bg_e6">
+                                <h4 class="text-black mb-0">
+                                    Check out these Creators
+                                </h4>
+                            </div>
+                            <div class="card-body mt-3">
+                                @if (RandomCreators.Count > 0)
+                                {
+                                    <ul class="list-group">
+                                        @foreach (var creator in RandomCreators.Take(limitOfRandomeCreator))
+                                        {
+                                            <li class="list-group-item bg_transparent border-0">
+                                                <div class="d-flex justify-content-between align-items-center">
+                                                    <div class="flex_box d-flex">
+                                                        @if (creator.UserPhoto != null)
+                                                        {
+                                                            <img src="data:image/gif;base64,@System.Convert.ToBase64String(creator.UserPhoto)" height="60px">
+                                                        }
+                                                        else
+                                                        {
+                                                            <img src="images/home/user.png" height="60px" alt="creator1">
+                                                        }
+                                                        <div class="flex_content ml-2" style="margin: auto;">
+                                                            <h6>
+                                                                @creator.UserName
+                                                            </h6>
+                                                        </div>
+                                                    </div>
+                                                    <div class="flex_box">
+                                                        <a href="#" class="font-weight-bold h5 text-black" @onclick="() => OnFollowUser(creator.Id)">
+                                                            Follow
+                                                        </a>
+                                                    </div>
+                                                </div>
+                                            </li>
+                                        }
+                                    </ul>
+                                }
+                            </div>
+                            <div class="card-footer border-0 bg_e6">
+                                <button class="btn btn-muted focus_shadow_off w-100" @onclick="() => ShowMoreRandomCreators()">
+                                    <h4 class="text-black">
+                                        Show more Creators
+                                    </h4>
+                                </button>
+                            </div>
+                        </div>
+
+
+
+                        <div class="collectors_card_swiper bg_e6 mb-5">
+                            <div class="card border-0 w-100">
+                                <div class="card-header bg_e6 d-flex align-items-center justify-content-between">
+                                    <h4 class="text-black mb-0">
+                                        Sonar
+                                    </h4>
+                                    <svg xmlns="http://www.w3.org/2000/svg"
+                                         xmlns:xlink="http://www.w3.org/1999/xlink" width="40" height="40"
+                                         viewBox="0 0 187 187">
+                                        <image id="icons8-radar" width="187" height="187"
+                                               xlink:href="data:image/png;base64,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" />
+                                    </svg>
+
+                                </div>
+                                @if (hottestAuction != null && hottestAuction.NFTData != null)
+                                {
+                                    <div class="card-body p-0">
+                                        <div class="card  shadow-sm collectors_card bg_transparent border-0 d-inline-block w-100 ">
+                                            <div class="card-header rounded-0 p-0 border-0  bg_transparent collectors_card_header position-relative"
+                                                 style="background-color: #311740;">
+                                                <img src="data:image/gif;base64,@System.Convert.ToBase64String(hottestAuction.NFTData.NFT.FileContent)" class="h-100 w-100 mx-auto"
+                                                     style="object-fit: contain;" alt="product_img">
+                                                <div class="collectors_card_header_content p-2">
+                                                    <div class="d-flex justify-content-between w-100 align-items-center">
+                                                        @if (hottestAuction.CurrentWinningUserId == selfProfileheader_Id)
+                                                        {
+                                                            <button class="btn bg_teal text-white btn-sm text-uppercase">
+                                                                Winning
+                                                            </button>
+                                                        }
+                                                        else
+                                                        {
+                                                            <button class="invisible"></button>
+                                                        }
+                                                        <button class="btn d-flex justify-content-center align-items-center btn-light border rounded-circle w_h_40">
+                                                            <i class="fas fa-heart text-dark btn-sm    "></i>
+                                                        </button>
+                                                    </div>
+                                                    @*<div class="bit_button bottom_0">
+                                                            <button class="btn btn-primary w-100 border rounded-pill mb-2">
+                                                                Place a bid
+                                                            </button>
+                                                        </div>*@
+                                                </div>
+                                            </div>
+                                            <div class="card-body bg-white">
+                                                <div class="d-flex justify-content-between mb-2">
+                                                    <span>
+                                                        @hottestAuction.NFTData.NFT.Title
+                                                    </span>
+                                                </div>
+                                                <div class="d-flex justify-content-between">
+                                                    <div class="stock_user stock_user_img d-flex align-items-center">
+                                                        @if (hottestAuction.NFTData.NFT.UserProfile != null && hottestAuction.NFTData.NFT.UserProfile.UserProfileHeader.UserPhoto != null)
+                                                        {
+                                                            <img src="data:image/gif;base64,@System.Convert.ToBase64String(hottestAuction.NFTData.NFT.UserProfile.UserProfileHeader.UserPhoto)" class="w_h_40 mr-2" alt="user">
+                                                        }
+                                                        else
+                                                        {
+                                                            <img src="images/home/user.png" class="w_h_40 mr-2" alt="circle_profile">
+                                                        }
+                                                    </div>
+                                                    <span>
+                                                        @hottestAuction.NFTData.UniqueNumberOfMintedNFT in @hottestAuction.NFTData.NFT.TotalNumberOfMintedNFT
+                                                    </span>
+                                                </div>
+
+                                            </div>
+                                            <div class="card-footer  bg-white">
+                                                <div class="d-flex justify-content-between mb-2 font_size_12">
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                }
+                            </div>
+
+                        </div>
+
+                        <div class="card border-0 bg_e6 mb-5 w-100">
+                            <div class="card-body">
+                                @foreach (var tag in SelectedTagList)
+                                {
+                                    @if (selectedTabName == "ForYou" && userForYouSelectTagList.Contains(tag))
+                                    {
+                                        <button class="btn btn-muted focus_shadow_off text-black rounded-pill px-2 mb-2 @bootstrapColorList[new Random().Next(bootstrapColorList.Count)]" @onclick="() => OnClickTag(tag)">
+                                            <b>#@tag</b>
+                                        </button>
+                                    }
+                                    else if (selectedTabName == "StaffPicks" && userStaffPicksSelectTagList.Contains(tag))
+                                    {
+                                        <button class="btn btn-muted focus_shadow_off text-black rounded-pill px-2 mb-2 border @bootstrapColorList[new Random().Next(bootstrapColorList.Count)]" @onclick="() => OnClickTag(tag)">
+                                            <b>#@tag</b>
+                                        </button>
+                                    }
+                                    else
+                                    {
+                                        <button class="btn btn-muted border_text_b1 focus_shadow_off text-black rounded-pill px-2 mb-2" @onclick="() => OnClickTag(tag)">
+                                            <b>#@tag</b>
+                                        </button>
+                                    }
+                                }
+                                <button class="btn btn-muted focus_shadow_off text-black rounded-pill px-2 mb-2 border btn-success" @onclick="() => OnClickClearSelectedTags()">
+                                    <b>#Clear</b>
+                                </button>
+                            </div>
+                        </div>
+
+
+
+                        <div class="card  border-0 bg_e6 pb-3 mb-5 w-100">
+                            <div class="card-header bg_e6 d-flex justify-content-between align-items-center">
+                                <h4 class="text-black mb-0">
+                                    Following
+                                </h4>
+                                @*<button class="btn btn-muted  focus_shadow_off">
+                                        Edit
+                                    </button>*@
+                            </div>
+                            <div class="card-body mt-3">
+                                <ul class="list-group">
+                                    @foreach (var follwingUser in followingUserList.Take(limitOfFollowingCreator))
+                                    {
+                                        <li class="list-group-item bg_transparent border-0">
+                                            <div class="d-flex justify-content-between align-items-center">
+                                                <div class="flex_box d-flex">
+                                                    @if (follwingUser.UserPhoto != null)
+                                                    {
+                                                        <img src="data:image/gif;base64,@System.Convert.ToBase64String(follwingUser.UserPhoto)" height="60px">
+                                                    }
+                                                    else
+                                                    {
+                                                        <img src="images/home/user.png" height="60px" alt="creator1">
+                                                    }
+                                                    <div class="flex_content ml-2" style="margin: auto;">
+                                                        <h6>
+                                                            @follwingUser.UserName
+                                                        </h6>
+                                                    </div>
+                                                </div>
+                                                <div class="flex_box">
+                                                    <a href="#" class="font-weight-bold h5 text-black" @onclick="() => OnUnFollowUser(follwingUser.Id)">
+                                                        UnFollow
+                                                    </a>
+                                                </div>
+                                            </div>
+                                        </li>
+                                    }
+                                </ul>
+                            </div>
+                            <div class="card-footer border-0 bg_e6">
+                                <button class="btn btn-muted focus_shadow_off w-100">
+                                    <h4 class="text-black" @onclick="() => ShowMoreFollowingCreators()">
+                                        Show more
+                                    </h4>
+                                </button>
+                            </div>
+                        </div>
+
+
+
+                        @*<div class="card border-0  mb-5 w-100">
+                                <div class="card-body">
+                                    @foreach (var tag in SelectedTagList)
+                                    {
+                                        <a href="#" class="btn btn-muted focus_shadow_off mb-2">
+                                            @tag
+                                        </a>
+                                    }
+                                </div>
+                            </div>*@
+
+                    </aside>
+                </div>
+            </div>
+        </div>
+    </section>
+</main>
+
+@code {
+    List<UserProfileHeader> followingUserList = new List<UserProfileHeader>();
+    List<NFTData> NFTDataForYouList = new List<NFTData>();
+    List<NFTData> NFTDataListForTags = new List<NFTData>();
+    List<NFTData> NFTDataStaffPicksList = new List<NFTData>();
+    List<Guid> AllLikesNFTDataIDs = new List<Guid>();
+    List<IGrouping<Guid, NFT>> RandomCreators1 = new List<IGrouping<Guid, NFT>>();
+    List<UserProfileHeader> RandomCreators = new List<UserProfileHeader>();
+    List<string> SelectedTagList = new List<string>();
+    List<string> TagForYouList = new List<string>();
+    List<string> TagStaffPicksList = new List<string>();
+    List<string> userForYouSelectTagList = new List<string>();
+    List<string> userStaffPicksSelectTagList = new List<string>();
+    List<string> bootstrapColorList = new List<string>();
+
+    private List<WeatherForecast> forecasts = new List<WeatherForecast>();
+
+    UserProfileHeader featuredProfile = new UserProfileHeader();
+    Auction hottestAuction = new Auction();
+
+    UserProfileHeader CurrentUserProfileInfo = new UserProfileHeader();
+    public Report report = new Report();
+
+    public bool IsEmailDisabled { get; set; }
+    public int skipNum { get; set; }
+
+    // cookie
+    string selected_account_addr { get; set; }
+    int limitOfRandomeCreator, limitOfFollowingCreator, currentPositionOfForYouFeedList, currentPositionOfStaffPicksFeedList;
+    string selectedTabName { get; set; }
+
+    // define a class to support the dropdown
+    public class EnumMyTypes
+    {
+        public Report.ReportReasonItems EnumValue { get; set; }
+        public string EnumName { get; set; }
+    }
+    // list for the dropdown
+    List<EnumMyTypes> MyTypes { get; set; } = new List<EnumMyTypes>();
+
+    public Guid selfProfileheader_Id { get; set; }
+    string userEmail = "";
+
+    protected async override Task OnInitializedAsync()
+    {
+        //NFTDataList = await NFTService.GetNFTDataByUserFollowingProfileHeaderID();
+        bootstrapColorList = new List<string>(new string[] { "border-primary",
+            "border-success", "border-danger", "border-warning", "border-info" });
+    }
+
+    protected async override Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            selfProfileheader_Id = await localStore.GetItemAsync<Guid>("headerId");
+            selected_account_addr = await localStore.GetItemAsync<string>("address");
+
+            //await FetchForecasts(skipNum);
+            selectedTabName = "ForYou";
+
+            currentPositionOfForYouFeedList = 0;
+            currentPositionOfStaffPicksFeedList = 0;
+            FetchForYouList();
+            FetchStaffPicksList();
+
+            AllLikesNFTDataIDs = NFTService.GetAllLikeNFTDataIDByUserProfileID(selfProfileheader_Id);
+
+            featuredProfile = await ProfileService.GetFeaturedProfile();
+            //NFTDataForYouList = await NFTService.GetNFTDataByUserFollowingProfileHeaderID(selfProfileheader_Id);
+            //NFTDataStaffPicksList = await NFTService.GetRandomNFTData();
+            hottestAuction = await AuctionService.GetHottestAuction();
+
+            followingUserList = await ProfileService.GetFollowersByEthAddress(selected_account_addr);
+            limitOfRandomeCreator = 5;
+            limitOfFollowingCreator = 5;
+
+            NFTDataListForTags = NFTService.GetAllNFTDataByUserFollowingProfileHeaderID(selfProfileheader_Id);
+
+            foreach (var nftDataForYou in NFTDataListForTags)
+            {
+                if (nftDataForYou.Tags == null) continue;
+                string[] tagList = nftDataForYou.Tags.Split(",");
+                for (int i = 0; i < tagList.Length; i++)
+                {
+                    if (TagForYouList.Contains(tagList[i].Trim()) == true)
+                        continue;
+
+                    TagForYouList.Add(tagList[i]);
+                }
+            }
+
+            NFTDataListForTags = await NFTService.GetAllRandomNFTData(selfProfileheader_Id);
+            foreach (var nftDataStaffPicks in NFTDataListForTags)
+            {
+                if (nftDataStaffPicks.Tags == null) continue;
+                string[] tagList = nftDataStaffPicks.Tags.Split(",");
+                for (int i = 0; i < tagList.Length; i++)
+                {
+                    if (TagStaffPicksList.Contains(tagList[i]) == true)
+                        continue;
+
+                    TagStaffPicksList.Add(tagList[i]);
+                }
+            }
+
+            SelectedTagList = TagForYouList;
+            selected_account_addr = await localStore.GetItemAsync<string>("address");
+
+            CurrentUserProfileInfo = await ProfileService.GetProfileAsync(selfProfileheader_Id);
+
+            if (CurrentUserProfileInfo.Email != null)
+            {
+                userEmail = CurrentUserProfileInfo.Email;
+                IsEmailDisabled = true;
+            }
+            else
+                IsEmailDisabled = false;
+
+            RandomCreators = NFTService.GetGroupNFTsByUserProfileHeaderID(selfProfileheader_Id);
+
+            StateHasChanged();
+
+            //await FetchForecasts();
+        }
+    }
+
+    private async void OnUnFollowUser(UserProfileHeader unFollowUserProfileHeader)
+    {
+        var result = await ProfileService.UnFollowUserProfile(unFollowUserProfileHeader.Id, selfProfileheader_Id);
+        ShowNotification(new NotificationMessage { Severity = NotificationSeverity.Info, Summary = "UnFollowing User", Detail = "UnFollowing " + unFollowUserProfileHeader.UserName, Duration = 4000 });
+        //NFTDataForYouList = await NFTService.GetNFTDataByUserFollowingProfileHeaderID(selfProfileheader_Id);
+        StateHasChanged();
+    }
+
+    void ShowNotification(NotificationMessage message)
+    {
+        NotificationService.Notify(message);
+    }
+
+    async Task OnReport()
+    {
+        await ShowReportDialog();
+    }
+
+    async Task OnInformation(NFTData selectedNFTData)
+    {
+        await ShowSelectedNFTDialog(selectedNFTData);
+    }
+
+    async Task ShowReportDialog() => await DialogService.OpenAsync("Report Dialog", ds =>
+    @<div>
+        <h3 Style="margin-bottom: 1rem">Report</h3>
+        <div class="row" style="margin-top: 2rem;">
+            <div class="col-md-4">
+                <h5 style="margin-top: .2rem; margin-right: 2rem; display: inline;">Reason : </h5>
+            </div>
+            <div class="col-md-5">
+                <RadzenDropDown Data="@MyTypes" TextProperty="EnumName" ValueProperty="EnumValue" @bind-Value="report.ReportReason" Style="width:100%;" />
+            </div>
+        </div>
+        <div class="row" style="margin-top: 2rem;">
+            <div class="col-md-4">
+                <h5 style="margin-top: .2rem; margin-right: 2rem; display: inline;">Email : </h5>
+            </div>
+            <div class="col-md-5">
+                <RadzenTextBox AllowClear="true" TValue="string" ReadOnly="@IsEmailDisabled" @bind-Value="@userEmail" Style="width:100%;" />
+            </div>
+        </div>
+        <div class="row" style="margin-top: 2rem;">
+            <div class="col-md-4">
+                <h5 style="margin-top: .2rem; margin-right: 2rem; display: inline;">Description : </h5>
+            </div>
+            <div class="col-md-7">
+                <RadzenTextArea AllowClear="true" TValue="string" @bind-Value="report.ReportDescription" Style="width:100%;" />
+            </div>
+        </div>
+        <div class="row" style="margin-top: 20px;">
+            <div class="col-md-11" style="justify-content: flex-end; display: flex;">
+                <RadzenButton Text="Submit" Click="() => OnReportSubmit()" Style="margin-bottom: 10px; width: 150px" ButtonStyle="ButtonStyle.Secondary" />
+                <RadzenButton Text="Cancel" Click="() => ds.Close(false)" Style="margin-bottom: 10px; width: 150px; margin-left: 15px;" />
+            </div>
+        </div>
+    </div>);
+
+    async Task ShowSelectedNFTDialog(NFTData selectedNftData) => await DialogService.OpenAsync("NFT Dialog", ds =>
+    @<div>
+        <h3 Style="margin-bottom: 1rem">NFTData Information</h3>
+        <div class="row" style="margin-top: 2rem;">
+            <div class="col-md-6">
+                <h5 style="margin-top: .2rem; margin-right: 2rem; display: inline;">NFT Creator : </h5>
+            </div>
+            <div class="col-md-6">
+                <RadzenLabel Text="@selectedNftData.NFT.UserProfile.UserProfileHeader.UserName" Component="CheckBox1" />
+            </div>
+        </div>
+        <div class="row" style="margin-top: 2rem;">
+            <div class="col-md-6">
+                <h5 style="margin-top: .2rem; margin-right: 2rem; display: inline;">NFT Name : </h5>
+            </div>
+            <div class="col-md-6">
+                <RadzenLabel Text="@selectedNftData.NFT.Title" Component="CheckBox1" />
+            </div>
+        </div>
+        <div class="row" style="margin-top: 2rem;">
+            <div class="col-md-6">
+                <h5 style="margin-top: .2rem; margin-right: 2rem; display: inline;">Description : </h5>
+            </div>
+            <div class="col-md-6">
+                <RadzenLabel Text="@selectedNftData.NFT.Description" Component="CheckBox1" />
+            </div>
+        </div>
+        @if (selectedNftData.IsSaleStarted == true)
+        {
+            <div class="row" style="margin-top: 2rem;">
+                <div class="col-md-6">
+                    <h5 style="margin-top: .2rem; margin-right: 2rem; display: inline;">Current Bid Price : </h5>
+                </div>
+                <div class="col-md-6">
+                    <RadzenLabel Text="@((selectedNftData.Auctions.FirstOrDefault().CurrentBidPrice / Startup.CoinPriceDict["ETH"]).ToString() + " ETH")" Component="CheckBox1" />
+                </div>
+            </div>
+        }
+        else
+        {
+            <div class="row" style="margin-top: 2rem;">
+                <div class="col-md-6">
+                    <h5 style="margin-top: .2rem; margin-right: 2rem; display: inline;">Sale Start Date : </h5>
+                </div>
+                <div class="col-md-6">
+                    <RadzenLabel Text="@selectedNftData.SaleStartDate.ToString()" Component="CheckBox1" />
+                </div>
+            </div>
+            <div class="row" style="margin-top: 2rem;">
+                <div class="col-md-6">
+                    <h5 style="margin-top: .2rem; margin-right: 2rem; display: inline;">Start Price : </h5>
+                </div>
+                <div class="col-md-6">
+                    <RadzenLabel Text="@((selectedNftData.FiatStartPrice / Startup.CoinPriceDict["ETH"]).ToString() + "ETH")" Component="CheckBox1" />
+                </div>
+            </div>
+        }
+        <div class="row" style="margin-top: 2rem;">
+            <div class="col-md-6">
+                <h5 style="margin-top: .2rem; margin-right: 2rem; display: inline;">Tags : </h5>
+            </div>
+            <div class="col-md-6">
+                <RadzenLabel Text="@selectedNftData.Tags" Component="CheckBox1" />
+            </div>
+        </div>
+
+        <div class="row" style="margin-top: 20px;">
+            <div class="col-md-12">
+                <RadzenButton Text="Close" Click="() => ds.Close(false)" ButtonStyle="ButtonStyle.Secondary" Style="margin-bottom: 10px; width: 150px" />
+                @if (selectedNftData.IsSaleStarted == true)
+                {
+                    <RadzenButton Text="Place Bid" Click="() => OnPlaceBidByNFTData(selectedNftData.Id)" Style="margin-bottom: 10px; width: 150px" />
+                }
+            </div>
+        </div>
+    </div>);
+
+    private async Task OnShareLink(Guid nftDataId)
+    {
+        var base64 = Convert.ToBase64String(nftDataId.ToByteArray());
+        var nftIdBase64 = base64.Substring(0, base64.Length - 2);
+
+        nftIdBase64 = nftIdBase64.Replace('/', '-');
+
+        await SharedLinkDialog("https://localhost:44360/viewnft/" + nftIdBase64);
+    }
+
+    async Task SharedLinkDialog(string sharedLink) => await DialogService.OpenAsync("NFT Dialog", ds =>
+    @<div>
+        <h3 Style="margin-bottom: 1rem">Shared Link</h3>
+        <div class="row" style="margin-top: 2rem;">
+            <div class="col-md-3">
+                <h5 style="margin-top: .2rem; margin-right: 1rem; display: inline;">Shared link : </h5>
+            </div>
+            <div class="col-md-9">
+                <CopyToClipboardButton Text="@sharedLink" shortText="@sharedLink" />
+            </div>
+        </div>
+    </div>);
+
+    private async Task OnPlaceBidByNFTData(Guid nftDataId)
+    {
+        Auction auction = await AuctionService.GetAuctionByNFTDataId(nftDataId);
+
+        if (auction.IsAuctionOver) NavigationManager.NavigateTo("endedauction/" + auction.Id);
+        else NavigationManager.NavigateTo("placebid/" + auction.Id);
+
+        await AuctionService.SaveRecentViewNFT(auction.NFTData.NFT.UserProfile.Id, auction.NFTDataId, auction.Id);
+    }
+
+    private async Task OnForYouClick()
+    {
+        selectedTabName = "ForYou";
+        SelectedTagList = TagForYouList;
+        StateHasChanged();
+    }
+
+    private async Task OnStaffPicksClick()
+    {
+        selectedTabName = "StaffPicks";
+        SelectedTagList = TagStaffPicksList;
+        StateHasChanged();
+    }
+
+    async Task OnReportSubmit()
+    {
+        report.ReporterEmail = userEmail;
+        report.ReportedUserId = selfProfileheader_Id;
+
+        await AuctionService.AddNewReport(report);
+
+        // Close the dialog
+        DialogService.Close();
+
+        StateHasChanged();
+    }
+
+    private async Task OnLikeNFT(Guid NftDataId, Guid UserProfileHeaderId)
+    {
+        if (string.IsNullOrEmpty(selected_account_addr)) { NavigationManager.NavigateTo("signin", true); return; }
+        var result = await ActivityService.SaveLikeNFTActivity(NftDataId, selfProfileheader_Id);
+
+        if(result == 0)
+            ShowNotification(new NotificationMessage { Severity = NotificationSeverity.Error, Summary = "NFT Like", Detail = "You've already liked this NFT.", Duration = 4000 });
+        else if(result == 2)
+            ShowNotification(new NotificationMessage { Severity = NotificationSeverity.Error, Summary = "NFT Like", Detail = "You can't like your NFT.", Duration = 4000 });
+
+        AllLikesNFTDataIDs = NFTService.GetAllLikeNFTDataIDByUserProfileID(selfProfileheader_Id);
+        StateHasChanged();
+    }
+
+    private async Task OnUnLikeNFT(Guid NftDataId, Guid UserProfileHeaderId)
+    {
+        if (string.IsNullOrEmpty(selected_account_addr)) { NavigationManager.NavigateTo("signin", true); return; }
+        var result = await ActivityService.SaveUnLikeNFT(NftDataId, selfProfileheader_Id);
+
+        if (result == 0)
+            ShowNotification(new NotificationMessage { Severity = NotificationSeverity.Success, Summary = "NFT Like", Detail = "You've unliked this NFT.", Duration = 4000 });
+        
+        AllLikesNFTDataIDs = NFTService.GetAllLikeNFTDataIDByUserProfileID(selfProfileheader_Id);
+        StateHasChanged();
+    }
+
+    private async Task OnPlaceBidByNFTDataId(Guid nftDataId)
+    {
+        if (string.IsNullOrEmpty(selected_account_addr)) { NavigationManager.NavigateTo("signin", true); return; }
+
+        Auction auction = await AuctionService.GetAuctionByNFTDataId(nftDataId);
+
+        if (auction.IsAuctionOver) NavigationManager.NavigateTo("endedauction/" + auction.Id);
+        else NavigationManager.NavigateTo("placebid/" + auction.Id);
+
+        await AuctionService.SaveRecentViewNFT(auction.NFTData.NFT.UserProfile.Id, auction.NFTDataId, auction.Id);
+    }
+
+    private async void OnFollowUser(Guid followingUserProfileHeaderId)
+    {
+        if (string.IsNullOrEmpty(selected_account_addr)) { NavigationManager.NavigateTo("signin", true); return; }
+
+        var userProfileHeader = await ProfileService.GetProfileHeaderByIDAsync(followingUserProfileHeaderId);
+
+        var result = await ProfileService.FollowUserProfile(followingUserProfileHeaderId, selfProfileheader_Id);
+        if (result == 1) ShowNotification(new NotificationMessage { Severity = NotificationSeverity.Info, Summary = "Following User", Detail = "Following " + userProfileHeader.UserName, Duration = 4000 });
+        if (result == 0) ShowNotification(new NotificationMessage { Severity = NotificationSeverity.Error, Summary = "Following User", Detail = "You are already Following " + userProfileHeader.UserName, Duration = 4000 });
+        if (result == 2) ShowNotification(new NotificationMessage { Severity = NotificationSeverity.Error, Summary = "Following User", Detail = "You can't follow yourself.", Duration = 4000 });
+
+        StateHasChanged();
+    }
+
+    private async void OnUnFollowUser(Guid followingUserProfileHeaderId)
+    {
+        var userProfileHeader = await ProfileService.GetProfileHeaderByIDAsync(followingUserProfileHeaderId);
+
+        var result = await ProfileService.UnFollowUserProfile(followingUserProfileHeaderId, selfProfileheader_Id);
+        ShowNotification(new NotificationMessage { Severity = NotificationSeverity.Info, Summary = "UnFollowing User", Detail = "UnFollowing " + userProfileHeader.UserName, Duration = 4000 });
+        bool bFollow = await ProfileService.GetResultOfFollow(followingUserProfileHeaderId, selfProfileheader_Id);
+        StateHasChanged();
+    }
+
+    private async void ShowMoreRandomCreators()
+    {
+        limitOfRandomeCreator += 5;
+        StateHasChanged();
+    }
+
+    private async void ShowMoreFollowingCreators()
+    {
+        limitOfRandomeCreator += 5;
+        StateHasChanged();
+    }
+
+    private void FetchForYouList()
+    {
+        if (selfProfileheader_Id != Guid.Empty)
+        {
+            var fetchedNFTData = NFTService.GetNFTDataByUserFollowingProfileHeaderID(selfProfileheader_Id, userForYouSelectTagList, currentPositionOfForYouFeedList, 1);
+            NFTDataForYouList.AddRange(fetchedNFTData); // Make sure to use AddRange() to append the new items
+
+            currentPositionOfForYouFeedList += 1;
+        }
+    }
+
+    private void FetchStaffPicksList()
+    {
+        if (selfProfileheader_Id != Guid.Empty)
+        {
+            var fetchedNFTData = NFTService.GetRandomNFTData(selfProfileheader_Id, userStaffPicksSelectTagList, currentPositionOfStaffPicksFeedList, 1);
+            NFTDataStaffPicksList.AddRange(fetchedNFTData);
+
+            currentPositionOfStaffPicksFeedList += 1;
+        }
+    }
+
+    private async Task OnClickTag(string tag)
+    {
+        if (selectedTabName == "ForYou")
+        {
+            currentPositionOfForYouFeedList = 0;
+            NFTDataForYouList.Clear();
+
+            if (userForYouSelectTagList.Contains(tag) == true)
+                userForYouSelectTagList.Remove(tag);
+            else
+                userForYouSelectTagList.Add(tag);
+            //selectedTag = tag;
+
+            FetchForYouList();
+        }
+        else if (selectedTabName == "StaffPicks")
+        {
+            currentPositionOfStaffPicksFeedList = 0;
+            NFTDataStaffPicksList.Clear();
+
+            if (userStaffPicksSelectTagList.Contains(tag) == true)
+                userStaffPicksSelectTagList.Remove(tag);
+            else
+                userStaffPicksSelectTagList.Add(tag);
+
+            //selectedTag = tag;
+
+            FetchStaffPicksList();
+        }
+    }
+
+    private async Task OnClickClearSelectedTags()
+    {
+        if (selectedTabName == "ForYou")
+        {
+            currentPositionOfForYouFeedList = 0;
+            NFTDataForYouList.Clear();
+            userForYouSelectTagList.Clear();
+
+            FetchForYouList();
+        }
+        else if (selectedTabName == "StaffPicks")
+        {
+            currentPositionOfStaffPicksFeedList = 0;
+            NFTDataStaffPicksList.Clear();
+            userStaffPicksSelectTagList.Clear();
+
+            FetchStaffPicksList();
+        }
+    }
+
+    void OnGoAuction()
+    {
+        if (!string.IsNullOrEmpty(selected_account_addr))
+            NavigationManager.NavigateTo("explore");
+        else NavigationManager.NavigateTo("signin");
+    }
+    }

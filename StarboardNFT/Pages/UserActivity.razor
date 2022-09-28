@@ -1,0 +1,442 @@
+﻿@page "/useractivity"
+
+@using StarboardNFT.Data;
+@using StarboardNFT.Models;
+
+@inject IJSRuntime jsRuntime;
+@inject NavigationManager NavigationManager
+@inject ActivityService ActivityService;
+@inject AuctionService AuctionService;
+@inject Blazored.LocalStorage.ILocalStorageService localStore
+
+<main>
+    <section class="border-bottom">
+        <div class="container-xxl">
+            <div class="row">
+                <div class="col-12 py-3">
+                    <div class="col_wrapper flex-wrap d-flex justify-content-between align-items-center ">
+                        <div class="flex_item">
+                            <button class="btn btn-muted rounded-pill border">
+                                <i class="fas fa-angle-left    "></i> Back to home
+                            </button>
+                        </div>
+                        <div class="flex_item d-flex align-items-center">
+                            <a href="#" class="btn btn-muted mx-2 shadow-0 focus_shadow_off">Profile</a>
+                            <i class="fas fa-angle-right   "></i>
+                            <a href="#" class="btn btn-muted mx-2 shadow-0 focus_shadow_off">Activity</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="my-5">
+        <div class="container-xxl">
+            <div class="row">
+                <div class="col-md-8">
+                    <div class="col_wrapper">
+                        <div class="d-flex justify-content-between flex-wrap align-items-center">
+                            <h2 class="text_23 mb-0">
+                                Activity
+                            </h2>
+                            @*<button class="btn btn-muted rounded-pill px-3 border">
+                                Mark all as read
+                            </button>*@
+                        </div>
+                        <br><br>
+                        <div class="nav_wrapper">
+                            <!-- Nav tabs -->
+                            <ul class="nav nav-tabs  border-0">
+                                <li class="nav-item">
+                                    <button class="btn border-0 btn-sm btn-muted nav-link btn_active_component rounded-pill px-3 py-1 active"
+                                            data-toggle="tab" data-target="#my_activity">
+                                        My activity
+                                    </button>
+                                </li>
+                                <li class="nav-item">
+                                    <button class="btn border-0 btn-sm btn-muted nav-link btn_active_component rounded-pill px-3 py-1"
+                                            data-toggle="tab" data-target="#Following">
+                                        Following
+                                    </button>
+                                </li>
+                                <li class="nav-item">
+                                    <button class="btn border-0 btn-sm btn-muted nav-link btn_active_component rounded-pill px-3 py-1"
+                                            data-toggle="tab" data-target="#all_activity">
+                                        All activity
+                                    </button>
+                                </li>
+                            </ul>
+                        </div>
+
+                        <div class="tab-content my-3 my-md-5">
+                            <div id="my_activity" class="tab-pane active">
+                                <ul class="list-group list_group_hover">
+                                    @if (@MyActivities != null)
+                                    {
+                                        @foreach (var activity in MyActivities.Take(20))
+                                        {
+                                            @if (!ActiveFilterCategories.Contains(activity.filterCategory)) continue;
+                                            <li class="list-group-item border-0 bg_transparent">
+                                                <div class="d-flex flex-wrap">
+                                                    <div class="notify_box_wrapper position-relative">
+                                                        @if (activity.NFTData == null)
+                                                        {
+                                                            <img src="" class="w_h_96 rounded-circle d-inline-block" alt="avatar">
+                                                        }
+                                                        else
+                                                        {
+                                                            <img src="data:image/gif;base64,@System.Convert.ToBase64String(activity.NFTData.NFT.FileContent)" class="w_h_96 rounded-circle d-inline-block" alt="avatar">
+                                                        }
+                                                        <!-- else box-->
+                                                        <!-- <span class="w_h_96 rounded-circle  d-inline-block bg_37"></span> -->
+                                                        <span class="notify_box_item bg_14">
+                                                            <svg id="type" xmlns="http://www.w3.org/2000/svg" width="32"
+                                                                 height="32" viewBox="0 0 32 32">
+                                                                <rect id="type_style_" data-name="type (style)" width="32"
+                                                                      height="32" rx="16" fill="#141416" />
+                                                                <g id="icons_Download_Line" data-name="icons/Download/Line"
+                                                                   transform="translate(8 8)">
+                                                                    <path id="Shape"
+                                                                          d="M12.667,1.333H2A.667.667,0,0,0,2,2.667H12.667a.667.667,0,0,0,0-1.333ZM2,0A2,2,0,0,0,2,4H12.667a2,2,0,0,0,0-4Z"
+                                                                          transform="translate(0.667 10)" fill="#fcfcfd"
+                                                                          fill-rule="evenodd" />
+                                                                    <path id="Shape-2" data-name="Shape"
+                                                                          d="M3.333.667A.667.667,0,1,0,2,.667V4.391l-.862-.862A.667.667,0,1,0,.2,4.471l2,2a.667.667,0,0,0,.943,0l2-2A.667.667,0,0,0,4.2,3.529l-.862.862Z"
+                                                                          transform="translate(5.333 2)" fill="#fcfcfd" />
+                                                                </g>
+                                                            </svg>
+
+
+                                                        </span>
+                                                        <!--  -->
+                                                    </div>
+                                                    <div class="content_wrapper ml-3 flex-grow-1">
+                                                        <strong>@activity.Title</strong>
+                                                        <br>
+                                                        <div class="d-flex justify-content-between align-items-center">
+                                                            <span>@activity.Description</span>
+                                                            <span>
+                                                                <svg xmlns="http://www.w3.org/2000/svg" width="12"
+                                                                     height="12" viewBox="0 0 12 12">
+                                                                    <rect id="new_icon_style_" data-name="new icon (style)"
+                                                                          width="12" height="12" rx="6" fill="#3772ff" />
+                                                                </svg>
+                                                            </span>
+                                                        </div>
+                                                        <span class="font_size_12">
+                                                            @activity.CreateDateTimeUtc.ToLocalTime()
+                                                        </span>
+                                                    </div>
+                                                </div>
+                                            </li>
+                                        }
+                                    }
+                                </ul>
+
+                                <div class="text-center my-3">
+                                    <span class="spinner-border spinner-border-sm mx-2"></span>
+                                </div>
+                            </div>
+                            <div id="Following" class="tab-pane">
+                                <ul class="list-group list_group_hover">
+                                    @if (@FollowingActivities != null)
+                                    {
+                                        @foreach (var followNFT in FollowingActivities.Take(20))
+                                        {
+                                            <li class="list-group-item border-0 bg_transparent">
+                                                <div class="d-flex flex-wrap">
+                                                    <div class="notify_box_wrapper position-relative">
+                                                        @if (followNFT.NFTData == null)
+                                                        {
+                                                            <img src="" class="w_h_96 rounded-circle d-inline-block" alt="avatar">
+                                                        }
+                                                        else
+                                                        {
+                                                            <img src="data:image/gif;base64,@System.Convert.ToBase64String(followNFT.NFTData.NFT.FileContent)" class="w_h_96 rounded-circle d-inline-block" alt="avatar">
+                                                        }
+                                                        <!-- else box-->
+                                                        <!-- <span class="w_h_96 rounded-circle  d-inline-block bg_37"></span> -->
+                                                        <span class="notify_box_item bg_14">
+                                                            <svg id="type" xmlns="http://www.w3.org/2000/svg" width="32"
+                                                                 height="32" viewBox="0 0 32 32">
+                                                                <rect id="type_style_" data-name="type (style)" width="32"
+                                                                      height="32" rx="16" fill="#141416" />
+                                                                <g id="icons_Download_Line" data-name="icons/Download/Line"
+                                                                   transform="translate(8 8)">
+                                                                    <path id="Shape"
+                                                                          d="M12.667,1.333H2A.667.667,0,0,0,2,2.667H12.667a.667.667,0,0,0,0-1.333ZM2,0A2,2,0,0,0,2,4H12.667a2,2,0,0,0,0-4Z"
+                                                                          transform="translate(0.667 10)" fill="#fcfcfd"
+                                                                          fill-rule="evenodd" />
+                                                                    <path id="Shape-2" data-name="Shape"
+                                                                          d="M3.333.667A.667.667,0,1,0,2,.667V4.391l-.862-.862A.667.667,0,1,0,.2,4.471l2,2a.667.667,0,0,0,.943,0l2-2A.667.667,0,0,0,4.2,3.529l-.862.862Z"
+                                                                          transform="translate(5.333 2)" fill="#fcfcfd" />
+                                                                </g>
+                                                            </svg>
+
+
+                                                        </span>
+                                                        <!--  -->
+                                                    </div>
+                                                    <div class="content_wrapper ml-3 flex-grow-1">
+                                                        <strong>@followNFT.Title</strong>
+                                                        <br>
+                                                        <div class="d-flex justify-content-between align-items-center">
+                                                            <span>@followNFT.Description</span>
+                                                            <span>
+                                                                <svg xmlns="http://www.w3.org/2000/svg" width="12"
+                                                                     height="12" viewBox="0 0 12 12">
+                                                                    <rect id="new_icon_style_" data-name="new icon (style)"
+                                                                          width="12" height="12" rx="6" fill="#3772ff" />
+                                                                </svg>
+                                                            </span>
+                                                        </div>
+                                                        <span class="font_size_12">
+                                                            @followNFT.CreateDateTimeUtc.ToLocalTime()
+                                                        </span>
+                                                    </div>
+                                                </div>
+                                            </li>
+                                        }
+                                    }
+                                </ul>
+
+                                <div class="text-center my-3">
+                                    <span class="spinner-border spinner-border-sm mx-2"></span>
+                                </div>
+                            </div>
+                            <div id="all_activity" class="tab-pane">
+                                <ul class="list-group list_group_hover">
+                                    @if (AllActivities != null)
+                                    {
+                                        @foreach (var allActivity in AllActivities.Take(20))
+                                        {
+                                            @if (!ActiveFilterCategories.Contains(allActivity.filterCategory)) continue;
+                                            <li class="list-group-item border-0 bg_transparent">
+                                                <div class="d-flex flex-wrap">
+                                                    <div class="notify_box_wrapper position-relative">
+                                                        @if (allActivity.NFTData == null)
+                                                        {
+                                                            <img src="" class="w_h_96 rounded-circle d-inline-block" alt="avatar">
+                                                        }
+                                                        else
+                                                        {
+                                                            <img src="data:image/gif;base64,@System.Convert.ToBase64String(allActivity.NFTData.NFT.FileContent)" class="w_h_96 rounded-circle d-inline-block" alt="avatar">
+                                                        }
+                                                        <!-- else box-->
+                                                        <!-- <span class="w_h_96 rounded-circle  d-inline-block bg_37"></span> -->
+                                                        <span class="notify_box_item bg_14">
+                                                            <svg id="type" xmlns="http://www.w3.org/2000/svg" width="32"
+                                                                 height="32" viewBox="0 0 32 32">
+                                                                <rect id="type_style_" data-name="type (style)" width="32"
+                                                                      height="32" rx="16" fill="#141416" />
+                                                                <g id="icons_Download_Line" data-name="icons/Download/Line"
+                                                                   transform="translate(8 8)">
+                                                                    <path id="Shape"
+                                                                          d="M12.667,1.333H2A.667.667,0,0,0,2,2.667H12.667a.667.667,0,0,0,0-1.333ZM2,0A2,2,0,0,0,2,4H12.667a2,2,0,0,0,0-4Z"
+                                                                          transform="translate(0.667 10)" fill="#fcfcfd"
+                                                                          fill-rule="evenodd" />
+                                                                    <path id="Shape-2" data-name="Shape"
+                                                                          d="M3.333.667A.667.667,0,1,0,2,.667V4.391l-.862-.862A.667.667,0,1,0,.2,4.471l2,2a.667.667,0,0,0,.943,0l2-2A.667.667,0,0,0,4.2,3.529l-.862.862Z"
+                                                                          transform="translate(5.333 2)" fill="#fcfcfd" />
+                                                                </g>
+                                                            </svg>
+
+
+                                                        </span>
+                                                        <!--  -->
+                                                    </div>
+                                                    <div class="content_wrapper ml-3 flex-grow-1">
+                                                        <strong>@allActivity.Title</strong>
+                                                        <br>
+                                                        <div class="d-flex justify-content-between align-items-center">
+                                                            <span>@allActivity.Description</span>
+                                                            <span>
+                                                                <svg xmlns="http://www.w3.org/2000/svg" width="12"
+                                                                     height="12" viewBox="0 0 12 12">
+                                                                    <rect id="new_icon_style_" data-name="new icon (style)"
+                                                                          width="12" height="12" rx="6" fill="#3772ff" />
+                                                                </svg>
+                                                            </span>
+                                                        </div>
+                                                        <span class="font_size_12">
+                                                            @allActivity.CreateDateTimeUtc.ToLocalTime()
+                                                        </span>
+                                                    </div>
+                                                </div>
+                                            </li>
+                                        }
+                                    }
+                                </ul>
+
+                                <div class="text-center my-3">
+                                    <span class="spinner-border spinner-border-sm mx-2"></span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                @if (bFilterDisplay == true)
+                {
+                    <div class="col-md-4">
+                        <div class="col_wrapper ">
+                            <aside class="shadow p-3 p-md-5 rounded_24 filter_aside ml-auto">
+                                <h4>
+                                    Filters
+                                </h4>
+                                <form action="" method="post">
+                                    <div class="form-check font_size_14 font_family_poppins font-weight-bold mb-3">
+                                        <label class="form-check-label">
+                                            <input type="checkbox" class="form-check-input" name="" id=""
+                                                   value="checkedValue" checked ="@bFilterCheckList[0]" @onchange="eventArgs => { filterCategoryChanged(Activity.FilterCategories.Sales, eventArgs.Value); }">
+                                            Sales
+                                        </label>
+                                    </div>
+                                    <div class="form-check font_size_14 font_family_poppins font-weight-bold mb-3">
+                                        <label class="form-check-label">
+                                            <input type="checkbox" class="form-check-input" name="" id=""
+                                                   value="checkedValue" checked ="@bFilterCheckList[1]" @onchange="eventArgs => { filterCategoryChanged(Activity.FilterCategories.Followings, eventArgs.Value); }">
+                                            Followings
+                                        </label>
+                                    </div>
+                                    <div class="form-check font_size_14 font_family_poppins font-weight-bold mb-3">
+                                        <label class="form-check-label">
+                                            <input type="checkbox" class="form-check-input" name="" id=""
+                                                   value="checkedValue" checked ="@bFilterCheckList[2]" @onchange="eventArgs => { filterCategoryChanged(Activity.FilterCategories.Likes, eventArgs.Value); }">
+                                            Likes
+                                        </label>
+                                    </div>
+                                    <div class="form-check font_size_14 font_family_poppins font-weight-bold mb-3">
+                                        <label class="form-check-label">
+                                            <input type="checkbox" class="form-check-input" name="" id=""
+                                                   value="checkedValue" checked ="@bFilterCheckList[3]" @onchange="eventArgs => { filterCategoryChanged(Activity.FilterCategories.Purchase, eventArgs.Value); }">
+                                            Purchase
+                                        </label>
+                                    </div>
+                                    <br>
+                                    <div class="btn_wrapper pt-4 border-top d-flex justify-content-center">
+                                        <button class="btn btn-muted border rounded-pill mr-3" type="button" @onclick="@OnSelectAll">
+                                            Select all
+                                        </button>
+                                        <button class="btn btn-muted border rounded-pill" type="button" @onclick="@OnUnSelectAll">
+                                            Unselect all
+                                        </button>
+
+                                    </div>
+                                </form>
+                            </aside>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+    </section>
+</main>
+
+@code {
+    public List<Activity> MyActivities = new List<Activity>();
+    public List<Activity> FollowingActivities = new List<Activity>();
+    public List<Activity> AllActivities = new List<Activity>();
+    public List<bool> bFilterCheckList = new List<bool>(Enumerable.Repeat(true, 4));
+
+    public bool bFilterDisplay { get; set; }
+
+    public List<Activity> FilteredFollowingActivities = new List<Activity>();
+    public List<Activity.FilterCategories> ActiveFilterCategories = new List<Activity.FilterCategories>{
+        Activity.FilterCategories.Sales,
+        Activity.FilterCategories.Followings,
+        Activity.FilterCategories.Likes,
+        Activity.FilterCategories.Purchase
+    };
+
+    // cookie
+    public string selected_account_addr { get; set; }
+
+    protected async override Task OnInitializedAsync()
+    {
+        bFilterDisplay = true;
+    }
+
+    protected async override Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            var profileheader_Id = await localStore.GetItemAsync<Guid>("headerId");
+
+            selected_account_addr = await localStore.GetItemAsync<string>("address");
+
+            if (!string.IsNullOrEmpty(selected_account_addr))
+            {
+                IEnumerable<Activity> acctivityEnumerable = await ActivityService.GetActivitybyUserHeaderId(profileheader_Id);
+                MyActivities = acctivityEnumerable.ToList();
+                MyActivities = MyActivities.OrderByDescending(x => x.CreateDateTimeUtc).ToList();
+            }
+            else
+                selected_account_addr = "";
+
+            IEnumerable<Activity> followingEnumerable = await ActivityService.GetFollwingbyUserHeaderId(profileheader_Id);
+            FollowingActivities = followingEnumerable.ToList();
+            FollowingActivities = followingEnumerable.OrderByDescending(x => x.CreateDateTimeUtc).ToList();
+
+            AllActivities = MyActivities;
+
+            StateHasChanged();
+        }
+    }
+
+    void filterCategoryChanged(Activity.FilterCategories filterCategory, object checkedValue)
+    {
+        if (filterCategory == Activity.FilterCategories.Sales)
+        {
+            if ((bool)checkedValue == true)
+                ActiveFilterCategories.Add(Activity.FilterCategories.Sales);
+            else
+                ActiveFilterCategories.Remove(Activity.FilterCategories.Sales);
+        }
+        else if (filterCategory == Activity.FilterCategories.Followings)
+        {
+            if ((bool)checkedValue == true)
+                ActiveFilterCategories.Add(Activity.FilterCategories.Followings);
+            else
+                ActiveFilterCategories.Remove(Activity.FilterCategories.Followings);
+        }
+        else if (filterCategory == Activity.FilterCategories.Likes)
+        {
+            if ((bool)checkedValue == true)
+                ActiveFilterCategories.Add(Activity.FilterCategories.Likes);
+            else
+                ActiveFilterCategories.Remove(Activity.FilterCategories.Likes);
+        }
+        else if (filterCategory == Activity.FilterCategories.Purchase)
+        {
+            if ((bool)checkedValue == true)
+                ActiveFilterCategories.Add(Activity.FilterCategories.Purchase);
+            else
+                ActiveFilterCategories.Remove(Activity.FilterCategories.Purchase);
+        }
+
+        StateHasChanged();
+    }
+
+    void OnSelectAll()
+    {
+        ActiveFilterCategories = new List<Activity.FilterCategories>{
+            Activity.FilterCategories.Sales,
+            Activity.FilterCategories.Followings,
+            Activity.FilterCategories.Likes,
+            Activity.FilterCategories.Purchase
+        };
+
+        bFilterCheckList = new List<bool>(Enumerable.Repeat(true, 4));
+
+        StateHasChanged();
+    }
+
+    void OnUnSelectAll()
+    {
+        ActiveFilterCategories.Clear();
+        bFilterCheckList = new List<bool>(Enumerable.Repeat(false, 4));
+
+        StateHasChanged();
+    }
+}

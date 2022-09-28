@@ -1,0 +1,66 @@
+﻿@page "/fortmatic"
+@inject IJSRuntime JsRunTime
+@inject Blazored.LocalStorage.ILocalStorageService localStore;
+@inject NavigationManager NavigationManager
+
+<div hidden="hidden" id="bitski-button"></div>
+<div class="selected_wallet">
+    <RadzenCard class="wallet-card">
+        <div style="width:100%; height:100%; margin: auto;">
+            <RadzenImage Path="img/wallet-icons/fortmatic.webp" Style="width:100%;" />
+        </div>
+        <p class="text-center font_size_32 mt-5">A user-friendly wallet that allows you to sign up with your phone number on any device</p>
+    </RadzenCard>
+</div>
+
+@*@if (!string.IsNullOrEmpty(fortmatic_address))
+    {
+        @fortmatic_address
+    }*@
+
+@code {
+    [Parameter]
+    public string selectedwalletImgpath { get; set; }
+
+    public string fortmatic_address { get; set; }
+
+    public async Task<string> ConnectFortmatic()
+    {
+        var address = "";
+
+        try
+        {
+            address = await JsRunTime.InvokeAsync<string>("WalletLib.handleLoginWithMagicLink");
+
+            fortmatic_address = address;
+
+            //if (string.IsNullOrEmpty(fortmatic_address))
+            //    return;
+
+            //var dateUTC = DateTime.UtcNow;
+            //var dateLocalFromUTC = dateUTC.ToLocalTime();
+
+            //await localStore.SetItemAsync("address", fortmatic_address);
+            //await localStore.SetItemAsync("ope_wallet_type", "Fortmatic");
+            //await localStore.SetItemAsync("open_wallet_date", dateLocalFromUTC);
+
+            //NavigationManager.NavigateTo("/", true);
+        }
+        catch (TaskCanceledException ex)
+        {
+            // Check ex.CancellationToken.IsCancellationRequested here.
+            // If false, it's pretty safe to assume it was a timeout.
+        }
+
+        return fortmatic_address;
+    }
+
+    async void DisconnectFortmatic()
+    {
+        await JsRunTime.InvokeAsync<string>("WalletLib.handleLogoutWithFortmatic");
+
+        fortmatic_address = " ";
+
+        StateHasChanged();
+    }
+}

@@ -1,0 +1,77 @@
+﻿@using Nethereum.UI
+@inject IEthereumHostProvider _metamaskHostProvider;
+@inject NethereumAuthenticator  _nethereumAuthenticator;
+@inject Blazored.LocalStorage.ILocalStorageService localStore;
+@inject NavigationManager NavigationManager
+@inject IJSRuntime jsRuntime;
+
+
+<div class="selected_wallet">
+    <RadzenCard class="wallet-card">
+        <div style="width:100%; height:100%; margin: auto;">
+            <RadzenImage Path="@selectedwalletImgpath" Style="width:100%;" />
+        </div>
+        <p class="text-center font_size_32 mt-5">A browser extension with great flexibility. The web's most popular wallet</p>
+    </RadzenCard>
+</div>
+
+    @*@if (MetamaskAvailable && !string.IsNullOrEmpty(SelectedAccount))
+    {
+        @SelectedAccount
+    }
+
+    @if (MetamaskAvailable && string.IsNullOrEmpty(SelectedAccount))
+    {
+        <button type="button" class="btnMetamask" @onclick="@EnableEthereumAsync">Connect Metamask</button>
+    }
+
+    @if (!MetamaskAvailable)
+    {
+        <button class="btnMetamask" disabled>Please Install Metamask</button>
+    }*@
+
+@code {
+
+    [Parameter]
+    public string selectedwalletImgpath { get; set; }
+
+    bool MetamaskAvailable { get; set; }
+    string SelectedAccount { get; set; }
+    protected string AuthenticatedAccount { get; set; }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            _metamaskHostProvider.SelectedAccountChanged += MetamaskHostProvider_SelectedAccountChanged;
+            MetamaskAvailable = await _metamaskHostProvider.CheckProviderAvailabilityAsync();
+
+            StateHasChanged();
+        }
+    }
+
+    private async Task MetamaskHostProvider_SelectedAccountChanged(string account)
+    {
+        SelectedAccount = account;
+
+        //var dateUTC = DateTime.UtcNow;
+        //var dateLocalFromUTC = dateUTC.ToLocalTime();
+
+        //await localStore.SetItemAsync("address", SelectedAccount);
+        //await localStore.SetItemAsync("ope_wallet_type", "Metamask");
+        //await localStore.SetItemAsync("open_wallet_date", dateLocalFromUTC);
+
+        //NavigationManager.NavigateTo("/", true);
+    }
+
+    public async Task<string> EnableEthereumAsync()
+    {
+        SelectedAccount = await _metamaskHostProvider.EnableProviderAsync();
+        return SelectedAccount;
+    }
+
+    public async Task AuthenticateAsync()
+    {
+        AuthenticatedAccount = await _nethereumAuthenticator.RequestNewChallengeSignatureAndRecoverAccountAsync();
+    }
+}

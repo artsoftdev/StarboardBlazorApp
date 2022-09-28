@@ -1,0 +1,80 @@
+﻿@page "/account"
+@page "/account/{index}"
+
+@using StarboardNFT.Models;
+@using Nethereum.UI;
+@inject IJSRuntime jsRuntime;
+@inject IEthereumHostProvider _ethereumHostProvider;
+@inject NethereumAuthenticator  _nethereumAuthenticator;
+@inject NavigationManager NavigationManager;
+@using Nethereum.RPC.Eth.Blocks;
+@using Nethereum.Hex.HexTypes;
+
+<RadzenTabs Change=@OnChange style="height: 100%; margin-top: 100px;" SelectedIndex="@selectedIndex">
+    <Tabs>
+        <RadzenTabsItem Text="My Wallet">
+        </RadzenTabsItem>
+        <RadzenTabsItem Text="Activity">
+        </RadzenTabsItem>
+        <RadzenTabsItem Text="Transactions">
+            <RadzenGrid ColumnWidth="150px" PageSize="5" AllowPaging="true" AllowSorting="true" Data="@profiles" TItem="UserProfile">
+                <Columns>
+                    <RadzenGridColumn TItem="UserProfile" Property="CustomerID" Title="Block Number" />
+                    <RadzenGridColumn TItem="UserProfile" Property="CompanyName" Title="TX Hash" />
+                    <RadzenGridColumn TItem="UserProfile" Property="ContactName" Title="From" />
+                    <RadzenGridColumn TItem="UserProfile" Property="ContactTitle" Title="To" />
+                    <RadzenGridColumn TItem="UserProfile" Property="Address" Title="Value" />
+                    <RadzenGridColumn TItem="UserProfile" Property="City" Title="TX Fee" />
+                </Columns>
+            </RadzenGrid>
+        </RadzenTabsItem>
+        <RadzenTabsItem Text="Offers">
+        </RadzenTabsItem>
+        <RadzenTabsItem Text="Settings">
+            <ProfileSetting />
+        </RadzenTabsItem>
+        <RadzenTabsItem Text="Linked Accounts">
+            <LinkedAccounts />
+        </RadzenTabsItem>
+    </Tabs>
+</RadzenTabs>
+
+@code {
+
+    [Parameter]
+    public string index { get; set; }
+
+    IEnumerable<UserProfile> profiles;
+    int selectedIndex { get; set; }
+
+    protected async override Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            if (!string.IsNullOrEmpty(index))
+            {
+                selectedIndex = Int32.Parse(index);
+                StateHasChanged();
+            }
+            //int abc = index;
+            //await jsRuntime.InvokeAsync<string>("console.log", "" + "helo123");
+            //var web3 = await _ethereumHostProvider.GetWeb3Async();
+            //var myAddr = "0xbb9bc244d798123fde783fcc1c72d3bb8c189413";
+            //var blockNumber = await web3.Eth.Blocks.GetBlockNumber.SendRequestAsync();
+            ////Getting current block with transactions
+            //var block = await web3.Eth.Blocks.GetBlockWithTransactionsByNumber.SendRequestAsync(new HexBigInteger(8257129));
+            //var transaction = await web3.Eth.Transactions.GetTransactionByHash.SendRequestAsync("0xb4729a0d8dd30e3070d0cb203090f2b792e029f6fa4629e96d2ebc1de13cb5c4");
+        }
+    }
+
+    private void bntClick()
+    {
+        jsRuntime.InvokeAsync<string>("console.log", "" + "helo");
+        StateHasChanged();
+    }
+
+    private void OnChange(int index)
+    {
+        jsRuntime.InvokeAsync<string>("console.log", $"Tab with index {index} was selected.");
+    }
+}

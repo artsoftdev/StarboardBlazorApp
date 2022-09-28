@@ -1,0 +1,79 @@
+*{
+    color: #000000;
+}
+body{
+    background: #fff;
+}
+header.scrolled{
+    background: #fff;
+}
+.text_70{
+    color: #707070;
+}
+.bg_e6{
+    background: #E6E6E6;
+}
+.bg_62{
+    background: #62BEA2;
+}
+.bg-black{
+    background: #000;
+}
+.text-black{
+    color: black!important;
+}
+
+.bg_transparent{
+    background: transparent;
+}
+.focus_shadow_off:focus{
+    box-shadow: none;
+}
+#search_bar_input{
+    @media (max-width: 500px) {
+        width: 150px;
+    }
+}
+#section__feed{
+    .col_right{
+        .card{
+            width: 400px;
+            &.card_right_1{
+                .card-header{
+                    background: url('../../img/feed/boat.png') center/cover;
+                }
+            }
+        }
+    }
+}
+.opacity_35{
+    opacity: .35;
+}
+.santas_tree_size{
+    @media (max-width: 792px){
+        height: 300px
+    }
+}
+.design_card_wrapper{
+    svg{
+        position: absolute;
+        &:nth-child(1){
+            top: 8px;
+            left: 8px;
+        }
+        &:nth-child(2){
+            top: 8px;
+            right:8px;
+        }
+        &:nth-child(3){
+            bottom: 8px;
+            left: 8px;
+        }
+        &:nth-child(4){
+            bottom: 8px;
+            right:8px;
+
+
+        }
+    }
+}

@@ -1,0 +1,36 @@
+﻿@using Nethereum.UI;
+@using FluentValidation;
+@using Accelist.FluentValidation.Blazor;
+@using Microsoft.AspNetCore.Components.Forms
+@using Nethereum.StandardNonFungibleTokenERC721.ContractDefinition;
+@inject IEthereumHostProvider _ethereuHostProvider;
+
+@*<div class="card">
+    
+</div>*@
+
+@*@code {
+
+    string TransactionHash { get; set; }
+    string ErrorTransferMessage { get; set; }
+
+    public async Task TransferAsync()
+    {
+        try
+        {
+            TransactionHash = null;
+            TransferFromFunction()
+            TransferFromFunctionBase erc721_transfer = new TransferFromFunctionBase() { From = "", To = "", TokenId = 23213 };
+            var web3 = await _ethereuHostProvider.GetWeb3Async();
+            
+            this.StateHasChanged();
+        }
+        catch (Exception ex)
+        {
+            ErrorTransferMessage = ex.Message;
+            this.StateHasChanged();
+        }
+    }
+
+}*@
+

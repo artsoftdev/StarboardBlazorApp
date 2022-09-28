@@ -1,0 +1,516 @@
+﻿@page "/nftdataupload/{nftId}"
+
+@using StarboardNFT.Data;
+@using System.Text;
+@using StarboardNFT.Models;
+@inject Blazored.LocalStorage.ILocalStorageService localStore;
+@inject NavigationManager NavigationManager;
+@inject NotificationService NotificationService
+
+@inherits OwningComponentBase<NFTService>
+
+<main>
+    <div class="container" style=" margin-top: 50px;">
+        <div class="row">
+            <div class="col-lg-5 mb-3">
+                <div class="col__wrapper ">
+                    <h2>
+                        Sell NFT
+                    </h2>
+                    <div class="card bg_transparent form__z__wrapper mt-2 mt-md-4">
+                        <div class="card__wrapper">
+                            @if (@file_extensions == "image")
+                            {
+                                <div class="file__output__wrapper">
+                                    <img src="@previewSrc" alt="" class="img_object_cover rounded-0 card-img border-0 h-100 w-100">
+                                </div>
+                            }
+                            else if (@file_extensions == "video")
+                            {
+                                <div class="file__output__wrapper">
+                                    <video src="@previewSrc" class="img_object_cover rounded-0 card-img border-0 h-100 w-100" muted autoplay></video>
+                                </div>
+                            }
+                            else if (@file_extensions == "audio")
+                            {
+                                <div class="file__output__wrapper">
+                                    <div class="audio__play__wrapper d-flex justify-content-around align-items-center flex-column w-100 h-100">
+                                        <i class="fas fa-music  fa-6x text-white-50 "></i>
+                                        <button onclick="AudioToggle(this)"
+                                                class="audio__play btn bg_darkblack">
+                                            <i class="fas fa-play"></i>
+                                            <i class="fas fa-pause"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            }
+                            else if (@file_extensions == "text")
+                            {
+                                <div class="file__output__wrapper" style="overflow-y: auto">
+                                    <div class="text__output p-3">
+                                        @if (!string.IsNullOrEmpty(previewSrc))
+                                            @previewSrc
+                                    </div>
+                                </div>
+                            }
+                            else if (@file_extensions == "application")
+                            {
+                                <div class="file__output__wrapper" style="overflow-y: auto">
+                                    <div class="file__output p-3 h-100 d-flex justify-content-center align-items-center">
+                                        <i class="fas fa-file-archive text-white-50 fa-5x    "></i>
+                                    </div>
+                                </div>
+                            }
+                            <div class="card-body">
+                                @if (!string.IsNullOrEmpty(@nft.Title))
+                                {
+                                    <strong>@title</strong>
+                                }
+                                else
+                                {
+                                    <strong> Your Title here</strong>
+                                }
+
+                                <div class="created__user">
+                                    <span class="text-white-50">Created by</span> <span class="px-2">
+                                        <i class="fas fa-user  text-info  "></i> @shortAddr
+                                    </span>
+                                </div>
+                            </div>
+                            <footer class="card-footer p-3 p-md-4">
+                            </footer>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-7 h-auto mb-3" Data="@nftData">
+                @if (@form_step == 1)
+                {
+                    <div class="col__wrapper h-100 row justify-content-center align-items-center">
+                        <div class="col-10 col-md-9 col-lg-8">
+                            <div>
+                                <div class="row" style="margin-top: 2rem">
+                                    <div class="col-md-6">
+                                        <h5 style="margin-top: .2rem; margin-right: 0.5rem; display: inline;">USD Start Price</h5>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <RadzenNumeric TValue="decimal" Format="0.00" @bind-Value="@nftData.FiatStartPrice" Placeholder="Enter or clear value" />
+                                    </div>
+                                </div>
+                                <div class="row" style="margin-top: 2rem;">
+                                    <div class="col-md-6">
+                                        <h5 style="margin-top: .2rem; margin-right: 2rem; display: inline;">Set Buyout Price</h5>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <RadzenCheckBox @bind-Value="@nftData.HasBuyoutPrice" TValue="bool" />
+                                    </div>
+                                </div>
+                                @if (nftData.HasBuyoutPrice == true)
+                                {
+                                    <div class="row" style="margin-top: 2rem">
+                                        <div class="col-md-6">
+                                            <h5 style="margin-top: .2rem; margin-right: 2rem; display: inline;">USD Buyout Price</h5>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <RadzenNumeric TValue="decimal" Format="0.00" @bind-Value="@nftData.FiatBuyOutPrice" Placeholder="Enter or clear value" />
+                                        </div>
+                                    </div>
+                                }
+                                <div class="row" style="margin-top: 2rem;">
+                                    <div class="col-md-6">
+                                        <h5 style="margin-top: .2rem; margin-right: 2rem; display: inline;">Set Reserve Price</h5>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <RadzenCheckBox @bind-Value="@nftData.HasReservePrice" TValue="bool" />
+                                    </div>
+                                </div>
+                                @if (@nftData.HasReservePrice == true)
+                                {
+                                    <div class="row" style="margin-top: 2rem;">
+                                        <div class="col-md-6">
+                                            <h5 style="margin-top: .2rem; margin-right: 2rem; display: inline;">Reserve Price</h5>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <RadzenNumeric TValue="decimal" Format="0.00" @bind-Value="@nftData.FiatReservePrice" Placeholder="Enter or clear value" />
+                                        </div>
+                                    </div>
+                                }
+                                <div class="row" style="margin-top: 2rem;">
+                                    <div class="col-md-6">
+                                        <h5 style="margin-top: .2rem; margin-right: 1.5rem; display: inline;">Royalty</h5>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <RadzenNumeric TValue="decimal" Format="0.00" @bind-Value="@nftData.Royalty" Placeholder="Enter or clear value" />
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="w-100 text-center" style="margin-top: 50px;">
+                                <button class="btn btn-dark bg_darkblack border-0 rounded-0 px-5 py-2 mr-2" @onclick="(() => OnBack())">
+                                    Back
+                                </button>
+                                <button class="btn btn-dark bg_darkblack border-0 rounded-0 px-3 py-2" @onclick="(() => OnContinue())">
+                                    Continue
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                }
+                @if (@form_step == 2)
+                {
+                    <div class="col__wrapper h-100 row justify-content-center align-items-center">
+                        <div class="col-10 col-md-9 col-lg-8">
+                            @if (@isSetSchedule == false)
+                            {
+                                <div class="row" style="margin-top: 2rem;">
+                                    <div class="col-md-6">
+                                        <h5 style="margin-top: .2rem; margin-right: 2rem; display: inline;">Auction Days</h5>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <RadzenNumeric TValue="int" @bind-Value="@auctionDays" Placeholder="Enter or clear value" />
+                                    </div>
+                                </div>
+                            }
+
+                            <div class="row" style="margin-top: 2rem;">
+                                <div class="col-md-6">
+                                    <h5 style="margin-top: .2rem; margin-right: 2rem; display: inline;">Set Schedule</h5>
+                                </div>
+                                <div class="col-md-6">
+                                    <RadzenCheckBox @bind-Value="@isSetSchedule" TValue="bool" />
+                                </div>
+                            </div>
+
+                            @if (@isSetSchedule == true)
+                            {
+                                <div class="row" style="margin-top: 2rem">
+                                    <div class="col-md-6">
+                                        <h5 style="margin-top: .2rem; margin-right: 0.5rem; display: inline;">Sales Start Date</h5>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <RadzenDatePicker TValue="DateTime" @bind-Value="@localStartDateTime" ShowTime="true" ShowSeconds="true" HoursStep="1.5" MinutesStep="5" SecondsStep="10" DateFormat="MM/dd/yyyy HH:mm" />
+                                    </div>
+                                </div>
+
+                                <div class="row" style="margin-top: 2rem">
+                                    <div class="col-md-6">
+                                        <h5 style="margin-top: .2rem; margin-right: 0.5rem; display: inline;">Sales End Date</h5>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <RadzenDatePicker TValue="DateTime" @bind-Value="@localEndDateTime" ShowTime="true" ShowSeconds="true" HoursStep="1.5" MinutesStep="5" SecondsStep="10" DateFormat="MM/dd/yyyy HH:mm" />
+                                    </div>
+                                </div>
+                            }
+                            <div class="w-100 text-center" style="margin-top: 50px;">
+                                <button class="btn btn-dark bg_darkblack border-0 rounded-0 px-5 py-2 mr-2" @onclick="(() => OnBack())">
+                                    Back
+                                </button>
+                                <button class="btn btn-dark bg_darkblack border-0 rounded-0 px-3 py-2" @onclick="(() => OnContinue())">
+                                    Continue
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                }
+                @if (@form_step == 3)
+                {
+                    <div class="col__wrapper h-100 row justify-content-center align-items-center">
+                        <div class="col-10 col-md-9 col-lg-8">
+                            <div class="row" style="margin-top: 2rem;">
+                                <div class="col-md-6">
+                                    <h5 style="margin-top: .2rem; margin-right: 0.5rem; display: inline;">Search Tags</h5>
+                                </div>
+                                <div class="col-md-6">
+                                    <input type="text" data-role="tagsinput" @bind-value="@nftData.Tags" name="tags" class="form-control">
+                                </div>
+                            </div>
+                            <div class="w-100 text-center" style="margin-top: 50px;">
+                                <button class="btn btn-dark bg_darkblack border-0 rounded-0 px-5 py-2 mr-2" @onclick="(() => OnBack())">
+                                    Back
+                                </button>
+                                <button class="btn btn-dark bg_darkblack border-0 rounded-0 px-3 py-2" @onclick="(() => OnContinue())">
+                                    Continue
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                }
+                @if (@form_step == 4)
+                {
+                    <div class="col__wrapper h-100 row justify-content-center align-items-center">
+                        <div class="col-10 col-md-9 col-lg-8">
+                            <div class="row" style="margin-top: 2rem;">
+                                <div class="col-md-6">
+                                    <h5 style="margin-top: .2rem; margin-right: 2rem; display: inline;">USD Start Price : </h5>
+                                </div>
+                                <div class="col-md-6">
+                                    <RadzenLabel Text="@nftData.FiatStartPrice.ToString()" Component="CheckBox1" />
+                                </div>
+                            </div>
+                            <div class="row" style="margin-top: 2rem;">
+                                <div class="col-md-6">
+                                    <h5 style="margin-top: .2rem; margin-right: 2rem; display: inline;">USD Buyout Price : </h5>
+                                </div>
+                                <div class="col-md-6">
+                                    <RadzenLabel Text="@nftData.FiatBuyOutPrice.ToString()" Component="CheckBox1" />
+                                </div>
+                            </div>
+                            <div class="row" style="margin-top: 2rem;">
+                                <div class="col-md-6">
+                                    <h5 style="margin-top: .2rem; margin-right: 2rem; display: inline;">Reserve Price : </h5>
+                                </div>
+                                <div class="col-md-6">
+                                    <RadzenLabel Text="@nftData.FiatReservePrice.ToString()" Component="CheckBox1" />
+                                </div>
+                            </div>
+                            <div class="row" style="margin-top: 2rem;">
+                                <div class="col-md-6">
+                                    <h5 style="margin-top: .2rem; margin-right: 2rem; display: inline;">Royalty : </h5>
+                                </div>
+                                <div class="col-md-6">
+                                    <RadzenLabel Text="@nftData.Royalty.ToString()" Component="CheckBox1" />
+                                </div>
+                            </div>
+                            <div class="row" style="margin-top: 2rem;">
+                                <div class="col-md-6">
+                                    <h5 style="margin-top: .2rem; margin-right: 2rem; display: inline;">Sale Start Date : </h5>
+                                </div>
+                                <div class="col-md-6">
+                                    <RadzenLabel Text="@localStartDateTime.ToString()" Component="CheckBox1" />
+                                </div>
+                            </div>
+                            <div class="row" style="margin-top: 2rem;">
+                                <div class="col-md-6">
+                                    <h5 style="margin-top: .2rem; margin-right: 2rem; display: inline;">Sale End Date : </h5>
+                                </div>
+                                <div class="col-md-6">
+                                    <RadzenLabel Text="@localEndDateTime.ToString()" Component="CheckBox1" />
+                                </div>
+                            </div>
+                            <div class="row" style="margin-top: 2rem;">
+                                <div class="col-md-6">
+                                    <h5 style="margin-top: .2rem; margin-right: 2rem; display: inline;">Tags : </h5>
+                                </div>
+                                <div class="col-md-6">
+                                    <RadzenLabel Text="@nftData.Tags" Component="CheckBox1" />
+                                </div>
+                            </div>
+
+                            <div class="w-100 text-center" style="margin-top: 50px;">
+                                <button class="btn btn-dark bg_darkblack border-0 rounded-0 px-5 py-2 mr-2" @onclick="(() => OnBack())">
+                                    Back
+                                </button>
+                                <button class="btn btn-dark bg_darkblack border-0 rounded-0 px-3 py-2" @onclick="(() => OnPublish())">
+                                    Finalize & Publish
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                }
+                else if (@form_step == 5 && isPublished == false)
+                {
+                    <div class="col__wrapper h-100 row justify-content-center align-items-center">
+                        <div class="col-10 col-md-9 col-lg-8">
+                            <span class="reject__icon d-block text-center h1">
+                                !
+                            </span>
+                            <p class="my-3 my-md-4 text-white-50">
+                                It looks like the transition was rejected in your wallet. Try again?
+                            </p>
+                            <div class="w-100 text-center">
+                                <button class="btn btn-dark bg_darkblack border-0 rounded-0 p-3 px-md-4">
+                                    Retry
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                }
+                else if (@form_step == 5 && isPublished == true)
+                {
+                    <div class="col__wrapper h-100 row justify-content-center align-items-center">
+                        <div class="col-10 col-md-9 col-lg-8">
+                            <span class="d-block text-center ">
+                                <i class="fas fa-check-circle fa-10x  text-success  "></i>
+                            </span>
+                            <p class="my-3 my-md-4 text-center">
+                                <strong class="text-success"> NFT Successfully Created</strong>
+                            </p>
+                            <div class="w-100 text-center">
+                                <button class="btn btn-dark bg_darkblack border-0 rounded-0 px-3 py-2 mr-2" @onclick="@goBackToPortfolio">
+                                    Go back to portfolio
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</main>
+
+@code {
+    @*DateTime? value = DateTime.Now;
+
+        IEnumerable<DateTime> dates = new DateTime[] { DateTime.Today.AddDays(-1), DateTime.Today.AddDays(1) };*@
+
+public string title { get; set; }
+string description { get; set; }
+string file_name { get; set; }
+string file_type { get; set; }
+string file_extensions { get; set; }
+byte[] file_content { get; set; }
+bool success { get; set; }
+bool isPublished { get; set; }
+bool isSetBuyoutPrice { get; set; }
+bool isSetReservePrice { get; set; }
+bool isSetSchedule { get; set; }
+string previewSrc { get; set; }
+string ethAddress { get; set; }
+string tags { get; set; }
+int form_step { get; set; }
+public string shortAddr { get; set; }
+public DateTime localStartDateTime;
+public DateTime localEndDateTime;
+
+int auctionDays;
+
+StarboardNFT.Models.NFTData nftData = new NFTData();
+NFT nft = new NFT();
+
+[Parameter]
+public string Nftid { get; set; }
+
+void OnChange(DateTime? value, string name, string format)
+{
+}
+
+protected async override Task OnAfterRenderAsync(bool firstRender)
+{
+    if (firstRender)
+    {
+        nft = await Service.GetNFTbyId(Nftid);
+        nftData = await Service.GetNFTDatabyNFTId(Nftid);
+        if (nftData.SaleStartDate != null) isSetSchedule = true;
+
+        var file_type = nft.FileType;
+
+        if (file_type.StartsWith("image/"))
+        {
+            file_extensions = "image";
+        }
+        else if (file_type.StartsWith("video/"))
+        {
+            file_extensions = "video";
+        }
+        else if (file_type.StartsWith("audio/"))
+        {
+            file_extensions = "audio";
+        }
+        else if (file_type.StartsWith("text/"))
+        {
+            file_extensions = "text";
+        }
+        else if (file_type.StartsWith("application/"))
+        {
+            file_extensions = "application";
+        }
+
+        if (file_type.StartsWith("text/"))
+        {
+            previewSrc = Encoding.UTF8.GetString(nft.FileContent, 0, nft.FileContent.Length);
+        }
+        else
+        {
+            string base64 = Convert.ToBase64String(nft.FileContent);
+            previewSrc = string.Format("data:{0};base64,{1}", file_type, base64);
+        }
+
+        ethAddress = await localStore.GetItemAsync<string>("address");
+        if (!string.IsNullOrEmpty(ethAddress))
+        {
+            shortAddr = ethAddress.Substring(0, 6) + "..." + ethAddress.Substring(38);
+        }
+        form_step = 1;
+
+        auctionDays = 1;
+
+        localStartDateTime = DateTime.Now;
+        localEndDateTime = DateTime.Now.AddDays(1);
+
+        StateHasChanged();
+    }
+}
+
+async Task OnPublish()
+{
+    form_step++;
+
+    nftData.NFTId = nft.Id;
+    TimeZoneInfo tz = TimeZoneInfo.Local;
+    nftData.SaleStartDate = TimeZoneInfo.ConvertTimeToUtc(localStartDateTime, tz);
+    nftData.SaleEndtDate = TimeZoneInfo.ConvertTimeToUtc(localEndDateTime, tz);
+    nftData.UniqueNumberOfMintedNFT = 1;
+    isPublished = await Service.OnNFTDataPublish(nftData);
+    StateHasChanged();
+}
+
+void OnChangeTitle()
+{
+    StateHasChanged();
+}
+
+void OnContinue()
+{
+    if (form_step == 1)
+    {
+        if (nftData.HasBuyoutPrice == true && nftData.FiatBuyOutPrice < nftData.FiatStartPrice)
+        {
+            ShowNotification(new NotificationMessage { Severity = NotificationSeverity.Error, Summary = "Invalid Price", Detail = "Buyout price should be higher than first price!", Duration = 4000 });
+            return;
+        }
+        if (nftData.HasReservePrice == true && nftData.FiatReservePrice < nftData.FiatStartPrice)
+        {
+            ShowNotification(new NotificationMessage { Severity = NotificationSeverity.Error, Summary = "Invalid Price", Detail = "Reserve price should be higher than first price!", Duration = 4000 });
+            return;
+        }
+    }
+    else if (form_step == 2 && isSetSchedule == false)
+    {
+        localStartDateTime = DateTime.UtcNow.ToLocalTime(); //This must be done when you display it.
+        localEndDateTime = localStartDateTime.AddDays(auctionDays);
+    }
+    else if (form_step == 2 && isSetSchedule == true)
+    {
+        //DateTime localStartDateTime = (DateTime)nftData.SaleStartDate;
+        //TimeZoneInfo tz = TimeZoneInfo.FindSystemTimeZoneById("Pacific Standard Time");
+        //utcStartDateTime = TimeZoneInfo.ConvertTimeToUtc(localStartDateTime, tz);
+        //utcStartDateTime = (DateTime)nftData.SaleStartDate;
+        //DateTime localEndDateTime = (DateTime)nftData.SaleEndtDate;
+        //utcEndDateTime = TimeZoneInfo.ConvertTimeToUtc(localEndDateTime, tz);
+        //utcEndDateTime = (DateTime)nftData.SaleEndtDate;
+    }
+
+    form_step++;
+    StateHasChanged();
+}
+
+void goBackToPortfolio()
+{
+    NavigationManager.NavigateTo("portfolio");
+}
+
+void OnBack()
+{
+    if (form_step > 1)
+    {
+        form_step--;
+        StateHasChanged();
+    }
+}
+
+
+void ShowNotification(NotificationMessage message)
+{
+    NotificationService.Notify(message);
+}
+}

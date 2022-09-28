@@ -1,0 +1,60 @@
+.bg_darkblue,
+.bg_darkblue:focus {
+    background: #293237;
+}
+
+.bg_hover_darkblue:hover {
+    background: #37444b !important;
+}
+
+.bg_darkblack,
+.bg_darkblack:focus {
+    background: rgba(255, 255, 255, 0.05);
+}
+
+.bg_darkblue_50 {
+    background: rgba(41, 50, 55, 0.5);
+}
+
+.bg_blue_50 {
+    background: rgba(0, 105, 217, 0.5);
+}
+
+.border_50 {
+    border-color: rgba(255, 255, 255, 0.5) !important;
+}
+
+.container__wrapper {
+    max-width: 1120px;
+    margin: auto;
+}
+
+.logo {
+    height: 40px;
+}
+
+.img_height_40 {
+    height: 40px;
+}
+
+@media (max-width: 900px) {
+    .img_height_40 {
+        height: 20px;
+    }
+}
+
+@media (max-width: 400px) {
+    .img_height_40 {
+        height: 12px;
+    }
+}
+
+.img_height_60 {
+    height: 60px;
+}
+
+@media (max-width: 900px) {
+    .img_height_60 {
+        height: 40px;
+    }
+}

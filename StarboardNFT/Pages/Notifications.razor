@@ -1,0 +1,53 @@
+﻿@page "/notifications"
+@using Microsoft.AspNetCore.SignalR.Client
+
+@using StarboardNFT.Models;
+@using StarboardNFT.Data;
+@using Newtonsoft.Json;
+
+@inject NavigationManager NavigationManager
+@inject IJSRuntime jsRuntime;
+
+@inject Blazored.LocalStorage.ILocalStorageService localStore;
+
+@inherits OwningComponentBase<StarboardNFT.Data.NotificationsService>
+
+<RadzenGrid style="margin-top: 100px; margin-left: 25px; margin-right: 25px; color: #000000;" PageSize="5" AllowPaging="true" AllowSorting="true" Data="@AllNotification" TItem="Notification">
+    <Columns>
+        <RadzenGridColumn TItem="Notification" Property="Title" Title="Title" />
+        <RadzenGridColumn TItem="Notification" Property="Description" Title="Description" />
+        <RadzenGridColumn TItem="Notification" Property="AuditFields.CreateDateTimeUtc" Title="DateTime" />
+        <RadzenGridColumn TItem="Notification" Property="IsRead" Title="IsRead" />
+    </Columns>
+</RadzenGrid>
+
+@code {
+
+    IEnumerable<Notification> AllNotification;
+    NFTData nftDataList = new NFTData();
+
+    private HubConnection hubConnection;
+    string current_address;
+
+    protected async override Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender) {
+            var profileheader_Id = await localStore.GetItemAsync<Guid>("headerId");
+            string userId = profileheader_Id.ToString();
+
+            AllNotification = await Service.GetNotificationbyUserHeaderId(profileheader_Id);
+            StateHasChanged();
+        }
+    }
+
+    public bool IsConnected => hubConnection.State == HubConnectionState.Connected;
+
+    private async Task SendNotification() {
+        //await hubConnection.SendAsync("sendNotification", "hi");
+        //var abc = IsConnected;
+        ////await hubConnection.SendAsync("GetConnectionId");
+        //await hubConnection.SendAsync("ReceiveNofitication", "ABC is abc");
+        var profileheader_Id = await localStore.GetItemAsync<Guid>("headerId");
+        await Service.SendNotification(profileheader_Id.ToString());
+    }
+}

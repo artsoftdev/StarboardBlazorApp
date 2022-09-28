@@ -1,0 +1,38 @@
+﻿@inject IJSRuntime JsRunTime;
+@inject Blazored.LocalStorage.ILocalStorageService localStore;
+@inject NavigationManager NavigationManager
+
+@inject IJSRuntime jsRuntime;
+
+<div class="selected_wallet">
+    <RadzenCard class="wallet-card">
+        <div style="width:100%; height:100%; margin: auto;">
+            <RadzenImage Path="img/wallet-icons/walletconnect.webp" Style="width:100%;" />
+        </div>
+        <p class="text-center font_size_32 mt-5">Pair with Trust, Argent, MetaMask  & more. Works from any browser, without an extension</p>
+    </RadzenCard>
+</div>
+
+@code {
+
+    [Parameter]
+    public string selectedwalletImgpath { get; set; }
+
+    //Bitmap qrCodeImg;
+    public string qrCodeImg { get; set; }
+    public string address { get; set; }
+
+    int orderID = 10248;
+
+    protected override void OnInitialized()
+    {
+
+    }
+
+    public async Task<string> SignInWalletConnectAsync()
+    {
+        address = await JsRunTime.InvokeAsync<string>("WalletLib.SignInWalletConnect");
+
+        return address;
+    }
+}

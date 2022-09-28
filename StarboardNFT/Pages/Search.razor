@@ -1,0 +1,475 @@
+﻿@page "/search"
+@page "/search/{searchText}"
+
+@using StarboardNFT.Data;
+@using StarboardNFT.Models;
+
+@inject NavigationManager NavigationManager
+@inject AuctionService AuctionService
+@inject ActivityService ActivityService
+@inject ILocalStorageService localStore
+@inject IJSRuntime jsRuntime;
+
+<main>
+    <section class="my-5">
+        <div class="container-xxl">
+            <div class="row">
+                <div class="col-12 py-3">
+                    <div class="col_wrapper border-bottom pb-3 flex-wrap d-flex justify-content-between align-items-center ">
+                        <div class="flex_item">
+                            <h4 class="text_23">
+                                Type your keywords
+                            </h4>
+                        </div>
+                        <div class="flex_item d-flex align-items-center">
+                            <div class="flex_item mr-5">
+                                <input type="text" class="form-control" @bind-value="@searchStr" />
+                            </div>
+                            <button class="btn btn-primary rounded-circle w_h_40" @onclick="() => OnChangeSearchCategory(selectedCategory)">
+                                <i class="fas fa-search    "></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section>
+        <div class="container-xxl">
+            <div class="row">
+                <div class="col-md-4">
+                    <div class="col_wrapper">
+                        <div class="form-group w-100 mb-3 mr-2 form_custom_group_sb">
+                            <select class="form-control w-100 text_23 font-weight-bold" name="" @onchange=@OnChangeSearch>
+                                @if (selectedFilterOption == "Recently Added")
+                                {
+                                    <option value="Recently Added" selected="selected">Recently Added</option>
+                                }
+                                else
+                                {
+                                    <option value="Recently Added">Recently Added</option>
+                                }
+
+                                <option value="Ending Soon">Ending Soon</option>
+                                <option value="Most Viewed">Most Viewed</option>
+                                <option value="Most Favorited">Most Favorited</option>
+                                <option value="Price: Low to High">Price: Low to High</option>
+                                <option value="Price: High to Low">Price: High to Low</option>
+                                <option value="Most Likes">Most Likes</option>
+                            </select>
+                        </div>
+                        <div class="form-group mr-2 w-100 mb-3">
+                            <label for="" class="font_size_12 text_b1">PRICE RANGE</label>
+                            <div class="input_range_wrapper font_size_14">
+                                <div class="range-wrap">
+                                    <input type="range" max="10" step="0.1" value="@priceRange" class="range form-control focus_shadow_off" @onchange="@OnChangeSearch">
+                                    <output class="bubble text-nowrap" value="0 ETH"></output>
+                                </div>
+                                <div class="input_range_value d-flex justify-content-between">
+                                    <span>0.01 ETH</span><span>10 ETH</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-group mr-2 w-100 mb-3">
+                            <label for="" class="font_size_12 text_b1">CREATOR</label>
+                            <div class="form-group text_23 form_custom_group_sb">
+                                <select name="" id="" class="form-control text_23 font-weight-bold" @onchange="@OnChangeSearch">
+                                    <option value="Non-verified" selected="selected">All</option>
+                                    <option value="Verified only">Verified only</option>
+                                </select>
+                            </div>
+                        </div>
+                        <br>
+                        <div class="btn_wrapper">
+                            <button class="btn btn-muted border rounded-pill px-3" @onclick="@ResetFilter">
+                                <i class="fas fa-times    "></i>
+                                Reset filters
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-8">
+                    <div class="col_wrapper">
+                        <div class="nav_wrapper">
+                            <!-- Nav tabs -->
+                            <ul class="nav nav-tabs  border-0">
+                                <li class="nav-item">
+                                    @if (selectedCategory == NFT.Categories.AllItems)
+                                    {
+                                        <button class="btn border-0 btn-sm btn-muted nav-link btn_active_component rounded-pill px-3 py-1 active" @onclick='() => OnChangeSearchCategory(NFT.Categories.AllItems)'
+                                                data-toggle="tab" data-target="#all_items">
+                                            All items
+                                        </button>
+                                    }
+                                    else
+                                    {
+                                        <button class="btn border-0 btn-sm btn-muted nav-link btn_active_component rounded-pill px-3 py-1" @onclick='() => OnChangeSearchCategory(NFT.Categories.AllItems)'
+                                                data-toggle="tab" data-target="#all_items">
+                                            All items
+                                        </button>
+                                    }
+                                </li>
+                                <li class="nav-item">
+                                    @if (selectedCategory == NFT.Categories.Art)
+                                    {
+                                        <button class="btn border-0 btn-sm btn-muted nav-link btn_active_component rounded-pill px-3 py-1 active" @onclick='() => OnChangeSearchCategory(NFT.Categories.Art)'
+                                                data-toggle="tab" data-target="#all_items">
+                                            Art
+                                        </button>
+                                    }
+                                    else
+                                    {
+                                        <button class="btn border-0 btn-sm btn-muted nav-link btn_active_component rounded-pill px-3 py-1" @onclick='() => OnChangeSearchCategory(NFT.Categories.Art)'
+                                                data-toggle="tab" data-target="#all_items">
+                                            Art
+                                        </button>
+                                    }
+                                </li>
+                                <li class="nav-item">
+                                    @if (selectedCategory == NFT.Categories.Game)
+                                    {
+                                        <button class="btn border-0 btn-sm btn-muted nav-link btn_active_component rounded-pill px-3 py-1 active" @onclick='() => OnChangeSearchCategory(NFT.Categories.Game)'
+                                                data-toggle="tab" data-target="#all_items">
+                                            Game
+                                        </button>
+                                    }
+                                    else
+                                    {
+                                        <button class="btn border-0 btn-sm btn-muted nav-link btn_active_component rounded-pill px-3 py-1" @onclick='() => OnChangeSearchCategory(NFT.Categories.Game)'
+                                                data-toggle="tab" data-target="#all_items">
+                                            Game
+                                        </button>
+                                    }
+                                </li>
+                                <li class="nav-item">
+                                    @if (selectedCategory == NFT.Categories.Photography)
+                                    {
+                                        <button class="btn border-0 btn-sm btn-muted nav-link btn_active_component rounded-pill px-3 py-1 active" @onclick='() => OnChangeSearchCategory(NFT.Categories.Photography)'
+                                                data-toggle="tab" data-target="#all_items">
+                                            Photography
+                                        </button>
+                                    }
+                                    else
+                                    {
+                                        <button class="btn border-0 btn-sm btn-muted nav-link btn_active_component rounded-pill px-3 py-1" @onclick='() => OnChangeSearchCategory(NFT.Categories.Photography)'
+                                                data-toggle="tab" data-target="#all_items">
+                                            Photography
+                                        </button>
+                                    }
+                                </li>
+                                <li class="nav-item">
+                                    @if (selectedCategory == NFT.Categories.Music)
+                                    {
+                                        <button class="btn border-0 btn-sm btn-muted nav-link btn_active_component rounded-pill px-3 py-1 active" @onclick='() => OnChangeSearchCategory(NFT.Categories.Music)'
+                                                data-toggle="tab" data-target="#all_items">
+                                            Music
+                                        </button>
+                                    }
+                                    else
+                                    {
+                                        <button class="btn border-0 btn-sm btn-muted nav-link btn_active_component rounded-pill px-3 py-1" @onclick='() => OnChangeSearchCategory(NFT.Categories.Music)'
+                                                data-toggle="tab" data-target="#all_items">
+                                            Music
+                                        </button>
+                                    }
+                                </li>
+                                <li class="nav-item">
+                                    @if (selectedCategory == NFT.Categories.Video)
+                                    {
+                                        <button class="btn border-0 btn-sm btn-muted nav-link btn_active_component rounded-pill px-3 py-1 active" @onclick='() => OnChangeSearchCategory(NFT.Categories.Video)'
+                                                data-toggle="tab" data-target="#all_items">
+                                            Video
+                                        </button>
+                                    }
+                                    else
+                                    {
+                                        <button class="btn border-0 btn-sm btn-muted nav-link btn_active_component rounded-pill px-3 py-1" @onclick='() => OnChangeSearchCategory(NFT.Categories.Video)'
+                                                data-toggle="tab" data-target="#all_items">
+                                            Video
+                                        </button>
+                                    }
+                                </li>
+                            </ul>
+                        </div>
+
+                        <!-- Tab panes -->
+                        <div class="tab-content my-3 my-md-5">
+                            <div id="all_items" class="tab-pane active">
+
+                                <div class="row">
+                                    @foreach (var auction in filterAuctionList)
+                                    {
+                                        <div class="col-md-6 col-lg-4 mb-3">
+                                            <div class="card shadow-sm collectors_card border-0 d-block bg_transparent">
+                                                <div class="card-header border-0 p-0  bg_transparent collectors_card_header position-relative">
+                                                    @if (auction.NFTData.NFT.FileContent != null)
+                                                    {
+                                                        <img src="data:image/gif;base64,@System.Convert.ToBase64String(auction.NFTData.NFT.FileContent)" class="h-100 w-100 size_cover" alt="user">
+                                                    }
+                                                    else
+                                                    {
+                                                        <img src="./img/media_img.png" class="h-100 w-100 size_cover" alt="media_img">
+                                                    }
+                                                    <div class="collectors_card_header_content p-2">
+                                                        <div class="d-flex justify-content-between w-100 align-items-center">
+                                                            <button class="btn bg_teal text-white btn-sm text-uppercase invisible">
+                                                                purchasing !
+                                                            </button>
+                                                            <button class="btn d-flex justify-content-center align-items-center btn-light border rounded-circle w_h_40" @onclick="() => OnLikeNFT(auction.NFTDataId, auction.NFTData.NFT.UserProfile.UserProfileHeaderId)">
+                                                                <i class="fas fa-heart text-dark btn-sm    "></i>
+                                                            </button>
+
+                                                        </div>
+
+                                                        <div class="bit_button bottom_0">
+                                                            <button class="btn btn-primary w-100 border rounded-pill mb-2" @onclick="() => OnPlaceBid(auction.Id)">
+                                                                Place a bid
+                                                            </button>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div class="card-body">
+                                                    <div class="d-flex justify-content-between mb-2">
+                                                        <span>
+                                                            @auction.NFTData.NFT.Title
+                                                        </span>
+                                                        <span class="font_size_14 font-weight-bold border_text_45 d-inline-block px-1 rounded-lg  text_45">
+                                                            @(auction.CurrentBidPrice / Startup.CoinPriceDict["ETH"]) ETH
+                                                        </span>
+                                                    </div>
+                                                    <div class="d-flex justify-content-between">
+                                                        <div class="stock_user stock_user_img d-flex align-items-center">
+                                                            @if (auction.NFTData.NFT.UserProfile.UserProfileHeader.UserPhoto != null)
+                                                            {
+                                                                <img src="data:image/gif;base64,@System.Convert.ToBase64String(auction.NFTData.NFT.UserProfile.UserProfileHeader.UserPhoto)" alt="user">
+                                                            }
+                                                            else
+                                                            {
+                                                                <img src="~/images/home/user.png" class="w_h_40" alt="user">
+                                                            }
+                                                        </div>
+                                                        <span>
+                                                            @auction.NFTData.UniqueNumberOfMintedNFT in @auction.NFTData.NFT.TotalNumberOfMintedNFT
+                                                        </span>
+                                                    </div>
+
+                                                </div>
+                                                <div class="card-footer bg_transparent">
+                                                    <div class="d-flex justify-content-between mb-2 font_size_12">
+                                                        @*<div class="d-flex ">
+                                                                <span>Highest bid</span>
+                                                                <span>
+                                                                    @(auction.CurrentBidPrice / Startup.CoinPriceDict["ETH"]) ETH
+                                                                </span>
+
+                                                            </div>
+                                                            <span class="ml-auto">
+                                                                New bid ðŸ”¥
+                                                            </span>*@
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    }
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+
+                    <!-- Loading more content cards -->
+                    <div class="text-center my-3">
+                        <button class="btn btn-muted rounded-pill px-3 focus_shadow_off border">
+                            <span class="spinner-border spinner-border-sm mx-2"></span>
+                            Load more
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+</main>
+
+@code {
+    [Parameter]
+    public string searchText { get; set; }
+
+    List<StarboardNFT.Models.Auction> filterAuctionList = new List<StarboardNFT.Models.Auction>();
+    List<IGrouping<Guid, Auction>> AuctionMostViewedList = new List<IGrouping<Guid, Auction>>();
+    List<IGrouping<Guid, Auction>> AuctionMostNFTFavoritesList = new List<IGrouping<Guid, Auction>>();
+    List<IGrouping<Guid, Auction>> AuctionMostNFTLikesList = new List<IGrouping<Guid, Auction>>();
+    List<StarboardNFT.Models.Auction> featuredUserAuctionList = new List<StarboardNFT.Models.Auction>();
+    List<StarboardNFT.Models.Auction> latestAuctionList = new List<StarboardNFT.Models.Auction>();
+
+    string searchStr { get; set; }
+    string selected_account_addr { get; set; }
+    public Guid selfProfileheader_Id { get; set; }
+    public string selectedFilterOption { get; set; }
+
+    public bool isVerified { get; set; }
+    public decimal priceRange { get; set; }
+
+    public class EnumCategories
+    {
+        public NFT.Categories EnumValue { get; set; }
+        public string EnumName { get; set; }
+    }
+
+    // list for the dropdown
+    List<EnumCategories> categories { get; set; } = new List<EnumCategories>();
+    NFT.Categories selectedCategory;
+
+    protected async override Task OnInitializedAsync()
+    {
+        searchStr = searchText;
+        if (searchText == null) searchText = "";
+
+        StateHasChanged();
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstTime)
+    {
+        if (firstTime)
+        {
+            selfProfileheader_Id = await localStore.GetItemAsync<Guid>("headerId");
+            filterAuctionList = await AuctionService.GetRecentlyAddedAuctionSale(searchStr, isVerified, priceRange, 0);
+            selected_account_addr = await localStore.GetItemAsync<string>("address");
+
+            selectedFilterOption = "Recently Added";
+
+            await jsRuntime.InvokeVoidAsync("initializeIndexPageComponent");
+
+            StateHasChanged();
+        }
+    }
+
+    public async Task OnChangeSearch(ChangeEventArgs e)
+    {
+        decimal numericValue;
+        bool isNumber = decimal.TryParse(e.Value.ToString(), out numericValue);
+
+        if (isNumber == true)
+            priceRange = decimal.Parse(e.Value.ToString());
+        else
+        {
+            if (e.Value.ToString() == "Non-verified")
+                isVerified = false;
+            else if (e.Value.ToString() == "Verified only")
+                isVerified = true;
+            else if (e.Value.ToString() == "Recently Added")
+                selectedFilterOption = "Recently Added";
+            else if (e.Value.ToString() == "Ending Soon")
+                selectedFilterOption = "Ending Soon";
+            else if (e.Value.ToString() == "Most Viewed")
+                selectedFilterOption = "Most Viewed";
+            else if (e.Value.ToString() == "Most Favorited")
+                selectedFilterOption = "Most Favorited";
+            else if (e.Value.ToString() == "Price: Low to High")
+                selectedFilterOption = "Price: Low to High";
+            else if (e.Value.ToString() == "Price: High to Low")
+                selectedFilterOption = "Price: High to Low";
+            else if (e.Value.ToString() == "Most Likes")
+                selectedFilterOption = "Most Likes";
+        }
+
+        if (selectedFilterOption == "Recently Added")
+        {
+            filterAuctionList = await AuctionService.GetRecentlyAddedAuctionSale("", isVerified, priceRange, selectedCategory);
+        }
+        else if (selectedFilterOption == "Ending Soon")
+        {
+            filterAuctionList = await AuctionService.GetEndingSoonAuctionSale("", isVerified, priceRange, selectedCategory);
+        }
+        else if (selectedFilterOption == "Most Viewed")
+        {
+            AuctionMostViewedList = await AuctionService.GetMostViewedAuctionSale("", isVerified, priceRange, selectedCategory);
+        }
+        else if (selectedFilterOption == "Most Favorited")
+        {
+            AuctionMostNFTFavoritesList = await AuctionService.GetMostFavoritesAuctionSale("", isVerified, priceRange, selectedCategory);
+        }
+        else if (selectedFilterOption == "Price: Low to High")
+        {
+            filterAuctionList = await AuctionService.GetLowToHighPriceAuctionSale("", isVerified, priceRange, selectedCategory);
+        }
+        else if (selectedFilterOption == "Price: High to Low")
+        {
+            filterAuctionList = await AuctionService.GetHighToLowPriceAuctionSale("", isVerified, priceRange, selectedCategory);
+        }
+        else if (selectedFilterOption == "Most Likes")
+        {
+            AuctionMostNFTLikesList = await AuctionService.GetMostLikesAuctionSale("", isVerified, priceRange, selectedCategory);
+        }
+
+        StateHasChanged();
+    }
+
+    public async Task OnChangeSearchCategory(NFT.Categories sCategory)
+    {
+
+        selectedCategory = sCategory;
+        if (selectedFilterOption == "Recently Added")
+        {
+            filterAuctionList = await AuctionService.GetRecentlyAddedAuctionSale(searchStr, isVerified, priceRange, selectedCategory);
+        }
+        else if (selectedFilterOption == "Ending Soon")
+        {
+            filterAuctionList = await AuctionService.GetEndingSoonAuctionSale(searchStr, isVerified, priceRange, selectedCategory);
+        }
+        else if (selectedFilterOption == "Most Viewed")
+        {
+            AuctionMostViewedList = await AuctionService.GetMostViewedAuctionSale(searchStr, isVerified, priceRange, selectedCategory);
+        }
+        else if (selectedFilterOption == "Most Favorited")
+        {
+            AuctionMostNFTFavoritesList = await AuctionService.GetMostFavoritesAuctionSale(searchStr, isVerified, priceRange, selectedCategory);
+        }
+        else if (selectedFilterOption == "Price: Low to High")
+        {
+            filterAuctionList = await AuctionService.GetLowToHighPriceAuctionSale(searchStr, isVerified, priceRange, selectedCategory);
+        }
+        else if (selectedFilterOption == "Price: High to Low")
+        {
+            filterAuctionList = await AuctionService.GetHighToLowPriceAuctionSale(searchStr, isVerified, priceRange, selectedCategory);
+        }
+        else if (selectedFilterOption == "Most Likes")
+        {
+            AuctionMostNFTLikesList = await AuctionService.GetMostLikesAuctionSale(searchStr, isVerified, priceRange, selectedCategory);
+        }
+
+        StateHasChanged();
+    }
+
+    public async Task ResetFilter()
+    {
+        selectedFilterOption = "Recently Added";
+        priceRange = 0;
+        isVerified = false;
+        selectedCategory = NFT.Categories.AllItems;
+        searchStr = "";
+
+        filterAuctionList = await AuctionService.GetRecentlyAddedAuctionSale("", isVerified, priceRange, selectedCategory);
+        await jsRuntime.InvokeVoidAsync("initializeIndexPageComponent");
+
+        StateHasChanged();
+    }
+
+    public async Task OnPlaceBid(Guid nftAuctionId)
+    {
+        if (string.IsNullOrEmpty(selected_account_addr)) { NavigationManager.NavigateTo("signin", true); return; }
+
+        Auction auction = await AuctionService.GetAuctionById(nftAuctionId);
+
+        if (auction.IsAuctionOver) NavigationManager.NavigateTo("endedauction/" + nftAuctionId);
+        else NavigationManager.NavigateTo("placebid/" + nftAuctionId);
+
+        await AuctionService.SaveRecentViewNFT(auction.NFTData.NFT.UserProfile.Id, auction.NFTDataId, auction.Id);
+    }
+
+    private async Task OnLikeNFT(Guid NftDataId, Guid UserProfileHeaderId)
+    {
+        if (string.IsNullOrEmpty(selected_account_addr)) { NavigationManager.NavigateTo("signin", true); return; }
+        await ActivityService.SaveLikeNFTActivity(NftDataId, selfProfileheader_Id);
+    }
+}

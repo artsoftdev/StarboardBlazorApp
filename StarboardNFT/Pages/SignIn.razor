@@ -1,0 +1,520 @@
+﻿@page "/signin"
+
+@using StarboardNFT.Pages.Wallets;
+@using StarboardNFT.Data;
+@using StarboardNFT.Models;
+@inject NavigationManager NavigationManager
+@inject IJSRuntime jsRuntime;
+@inject DialogService DialogService;
+@inject Blazored.LocalStorage.ILocalStorageService localStore;
+
+@inherits OwningComponentBase<ProfileService>
+
+<main>
+    <div hidden="hidden" id="bitski-button"></div>
+    <section>
+        <div class="container-xxl my-5">
+            <div class="row">
+                <div class="col-12">
+                    <div class="col_wrapper py-3 mb-3 mb-md-5 border-bottom">
+                        <h2 class="text_23">
+                            <i class="fas fa-angle-left   mr-2 "></i>
+                            Connect your wallet
+                        </h2>
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-sm-6 mb-3">
+                    <div class="col_wrapper">
+                        <ul class="list-group">
+                            <li class="list-group-item bg_transparent border-0">
+                                <a href="" @onclick='(() => OnWalletCardClick("metamask"))' @onclick:preventDefault class="btn btn-muted focus_shadow_off d-flex active_connect align-items-center">
+                                    <span class="d-inline-flex justify-content-center align-items-center text-white mr-3 rounded-circle w_h_60">
+                                        <RadzenImage Path="img/wallet-icons/metamask-alternative.png" Style="width:65%;" />
+                                    </span>
+                                    <span>
+                                        Metamask
+                                    </span>
+                                    @if (selectedWalletType == "metamask")
+                                    {
+                                        <i class="fas fa-angle-right ml-3 d-none active_connect_fa  "></i>
+                                    }
+                                </a>
+                            </li>
+                            <li class="list-group-item bg_transparent border-0">
+                                <a href="" @onclick='(() => OnWalletCardClick("bitski"))' @onclick:preventDefault class="btn btn-muted focus_shadow_off d-flex active_connect align-items-center">
+                                    <span class="d-inline-flex justify-content-center align-items-center text-white mr-3 rounded-circle w_h_60">
+                                        <RadzenImage Path="img/wallet-icons/bitski-alternative.png" Style="width:75%;" />
+                                    </span>
+                                    <span>
+                                        Bitski
+                                    </span>
+                                    @if (selectedWalletType == "bitski")
+                                    {
+                                        <i class="fas fa-angle-right ml-3 d-none active_connect_fa  "></i>
+                                    }
+                                </a>
+                            </li>
+
+                            <li class="list-group-item bg_transparent border-0">
+                                <a href="" @onclick='(() => OnWalletCardClick("fortmatic"))' @onclick:preventDefault class="btn btn-muted focus_shadow_off d-flex active_connect align-items-center">
+                                    <span class="d-inline-flex justify-content-center align-items-center text-white mr-3 rounded-circle w_h_60">
+                                        <RadzenImage Path="img/wallet-icons/fortmatic-alternative.png" Style="width:65%;" />
+                                    </span>
+                                    <span>
+                                        Fortmatic
+                                    </span>
+                                    @if (selectedWalletType == "fortmatic")
+                                    {
+                                        <i class="fas fa-angle-right ml-3 d-none active_connect_fa  "></i>
+                                    }
+                                </a>
+                            </li>
+
+                            <li class="list-group-item bg_transparent border-0">
+                                <a href="" @onclick='(() => OnWalletCardClick("walletconnect"))' @onclick:preventDefault class="btn btn-muted focus_shadow_off d-flex active_connect align-items-center">
+                                    <span class="d-inline-flex justify-content-center align-items-center text-white mr-3 rounded-circle w_h_60">
+                                        <RadzenImage Path="img/wallet-icons/walletconnect-alternative.png" Style="width:65%;" />
+                                    </span>
+                                    <span>
+                                        Wallet Connect
+                                    </span>
+                                    @if (selectedWalletType == "walletconnect")
+                                    {
+                                        <i class="fas fa-angle-right ml-3 d-none active_connect_fa  "></i>
+                                    }
+                                </a>
+                            </li>
+
+                            <li class="list-group-item bg_transparent border-0">
+                                <a href="" @onclick='(() => OnWalletCardClick("walletlink"))' @onclick:preventDefault class="btn btn-muted focus_shadow_off d-flex active_connect align-items-center">
+                                    <span class="d-inline-flex justify-content-center align-items-center text-white mr-3 rounded-circle w_h_60">
+                                        <RadzenImage Path="img/wallet-icons/walletlink-alternative.png" Style="width:65%;" />
+                                    </span>
+                                    <span>
+                                        WalletLink
+                                    </span>
+                                    @if (selectedWalletType == "walletlink")
+                                    {
+                                        <i class="fas fa-angle-right ml-3 d-none active_connect_fa  "></i>
+                                    }
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+                @if (isConnectClicked == true)
+                {
+                    <div class="col-sm-6 mb-3 h-auto">
+                        <div class="col_wrapper">
+                            <EditForm Model="@objProfileHeaderSettings" OnValidSubmit="@HandleValidSubmit">
+                                <div class="text-center text-sm-left">
+                                    <h3 class="text_23">
+                                        Terms of service
+                                    </h3>
+                                    <span class="font_size_12 text_7">
+                                        Please take a few minutes to read and understand STARB
+                                        Terms of Service. To continue, you’ll need to accept the terms of services by
+                                        checking
+                                        the boxes.
+                                    </span>
+                                </div>
+                                <br>
+                                <br>
+                                <div class="qr_code_wrapper">
+                                    <img src="./img/qr_code_img.png" alt="qr_code_img" class="w-100">
+                                    <br>
+                                    <br>
+
+                                    <div class="form-check">
+                                        <label class="form-check-label cup">
+                                            <input type="checkbox" class="form-check-input" name="" id=""
+                                                   value="checkedValue" checked>
+                                            I am at least 13 year old
+                                        </label>
+                                    </div>
+
+                                    <div class="form-check">
+                                        <label class="form-check-label cup">
+                                            <InputCheckbox type="checkbox" class="form-check-input" name="" id="" @bind-Value="objProfileHeaderSettings.TermsAgree" />
+                                            I agree Starboard terms of service
+                                        </label>
+                                    </div>
+                                    <DataAnnotationsValidator />
+                                    <ValidationSummary />
+
+                                </div>
+                                <br>
+                                <div class="text-center text-sm-left">
+                                    <button class="btn btn-muted border w_100_less_sm mb-2 rounded-pill px-3" type="button" @onclick="@OnSignInCancel">
+                                        Cancel
+                                    </button>
+
+                                    <button class="btn btn-primary border w_100_less_sm mb-2 rounded-pill px-3" type="submit">
+                                        Get started now
+                                    </button>
+                                </div>
+                            </EditForm>
+                        </div>
+                    </div>
+                }
+                else
+                {
+                    <div class="col-sm-6 mb-3 h-auto">
+                        <div class="col_wrapper d-flex h-95 w-100 justify-content-center justify-content-sm-end">
+                            @*<img src="./img/bottol.png" class="d-block h-100 w-100" alt="bottol">*@
+                            @if (selectedWalletType == "metamask")
+                            {
+                                <Metamask @ref="metamask" selectedwalletImgpath="@selectedWallet" />
+                            }
+                            else if (selectedWalletType == "bitski")
+                            {
+                                <Bitski @ref="bitski" selectedwalletImgpath="@selectedWallet" />
+                            }
+                            else if (selectedWalletType == "fortmatic")
+                            {
+                                <Fortmatic @ref="fortmatic" selectedwalletImgpath="@selectedWallet" />
+                            }
+                            else if (selectedWalletType == "walletconnect")
+                            {
+                                <Walletconnect @ref="walletconnect" selectedwalletImgpath="@selectedWallet" />
+                            }
+                            else if (selectedWalletType == "walletlink")
+                            {
+                                <Walletlink @ref="walletlink" selectedwalletImgpath="@selectedWallet" />
+                            }
+                        </div>
+                        <div class="text-center h-5 mt-3">
+                            <button class="btn btn-primary border w_100_less_sm mb-2 rounded-pill px-5" @onclick="(() => OnConnectBtnClick())">
+                                Connect
+                            </button>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+    </section>
+
+</main>
+@*<div class="card-body">
+    <h3 style="text-align: center; margin-top: 75px; margin-bottom: 35px;">Sign in to your wallet.</h3>
+    <div class="row">
+
+        @if (selectedWalletType == "metamask")
+        {
+            <Metamask @ref="metamask" selectedwalletImgpath="@selectedWallet" />
+        }
+        else if (selectedWalletType == "bitski")
+        {
+            <Bitski @ref="bitski" selectedwalletImgpath="@selectedWallet" />
+        }
+        else if (selectedWalletType == "fortmatic")
+        {
+            <Fortmatic @ref="fortmatic" selectedwalletImgpath="@selectedWallet" />
+        }
+        else if (selectedWalletType == "walletconnect")
+        {
+            <Walletconnect @ref="walletconnect" selectedwalletImgpath="@selectedWallet" />
+        }
+        else if (selectedWalletType == "walletlink")
+        {
+            <Walletlink @ref="walletlink" selectedwalletImgpath="@selectedWallet" />
+        }
+    </div>
+
+    <br />
+    <div class="row">
+        <RadzenButton Click="@SignInWithWallet" Text="Sign In" Style="margin-left: auto; margin-right: auto;" ButtonStyle="ButtonStyle.Secondary" />
+    </div>
+
+    <div class="row">
+        <div id="wallets-group" style="max-width: 760px; margin: auto;">
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-lg-4 col-md-6 col-sm-12" style="margin-bottom:20px;">
+                        <RadzenCard class="wallet-card" @onclick='(() => OnWalletCardClick("metamask"))'>
+                            <div style="width:120px; height:100%; margin: auto;">
+                                <RadzenImage Path="img/wallet-icons/metamask.png" Style="width:100%;" />
+                            </div>
+                            <p>A browser extension with great flexibility. The web's most popular wallet</p>
+                        </RadzenCard>
+                    </div>
+                    <div class="col-lg-4 col-md-6 col-sm-12" style="margin-bottom:20px;">
+                        <RadzenCard class="wallet-card" @onclick='(() => OnWalletCardClick("bitski"))'>
+                            <div style="width:120px; height:100%; margin: auto;">
+                                <RadzenImage Path="img/wallet-icons/bitski.png" Style="width:100%;" />
+                            </div>
+                            <p>A simple-to-use wallet that allows you to sign in with an email and password</p>
+                            </RadzenCard>
+                    </div>
+                    <div class="col-lg-4 col-md-6 col-sm-12" style="margin-bottom:20px;">
+                        <RadzenCard class="wallet-card" @onclick='(() => OnWalletCardClick("fortmatic"))'>
+                            <div style="width:120px; height:100%; margin: auto;">
+                                <RadzenImage Path="img/wallet-icons/fortmatic.webp" Style="width:100%;" />
+                            </div>
+                            <p>A user-friendly wallet that allows you to sign up with your phone number on any device</p>
+                        </RadzenCard>
+                    </div>
+                    <div class="col-lg-4 col-md-6 col-sm-12">
+                        <RadzenCard class="wallet-card" @onclick='(() => OnWalletCardClick("walletconnect"))'>
+                            <div style="width:120px; height:100%; margin: auto;">
+                                <RadzenImage Path="img/wallet-icons/walletconnect.webp" Style="width:100%;" />
+                            </div>
+                            <p>Pair with Trust, Argent, MetaMask  & more. Works from any browser, without an extension</p>
+                        </RadzenCard>
+                    </div>
+                    <div class="col-lg-4 col-md-6 col-sm-12">
+                        <RadzenCard class="wallet-card" @onclick='(() => OnWalletCardClick("walletlink"))'>
+                            <div style="width:120px; height:100%; margin: auto;">
+                                <RadzenImage Path="img/wallet-icons/walletlink.webp" Style="width:100%;" />
+                            </div>
+                            <p>Pairs with Coinbase Wallet and works from any browser, without an extension</p>
+                        </RadzenCard>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>*@
+
+@code {
+
+    // Hold the reference to the component
+    private Metamask metamask;
+    private Bitski bitski;
+    private Fortmatic fortmatic;
+    private Walletconnect walletconnect;
+    private Walletlink walletlink;
+
+    public string selectedWallet = "";
+    public string selectedWalletType = "";
+    string selectedWalletAddress { get; set; }
+    string dialogResult { get; set; }
+    string RequiredInfo { get; set; }
+    public Guid profileheaderId { get; set; }
+
+    public bool isConnectClicked { get; set;}
+
+    UserProfile objProfileSettings = new UserProfile();
+    UserProfileHeader objProfileHeaderSettings = new UserProfileHeader();
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            selectedWallet = "img/wallet-icons/" + "metamask" + ".png";
+            selectedWalletType = "metamask";
+
+            DialogService.OnOpen += Open;
+            DialogService.OnClose += Close;
+
+            isConnectClicked = false;
+            StateHasChanged();
+        }
+    }
+
+    void OnSignInWallet()
+    {
+        NavigationManager.NavigateTo("signin");
+    }
+
+    private void OnWalletCardClick(string type)
+    {
+        isConnectClicked = false;
+
+        jsRuntime.InvokeAsync<string>("console.log", "" + type);
+        selectedWallet = "img/wallet-icons/" + type + ".png";
+        selectedWalletType = type;
+
+        StateHasChanged();
+    }
+
+    //Call method for each wallet component sign In.
+    protected async Task SignInWithWallet()
+    {
+        if (selectedWalletType == "metamask")
+            selectedWalletAddress = await metamask.EnableEthereumAsync();
+        else if (selectedWalletType == "bitski")
+            selectedWalletAddress = await bitski.ConnectBitski();
+        else if (selectedWalletType == "fortmatic")
+            selectedWalletAddress = await fortmatic.ConnectFortmatic();
+        else if (selectedWalletType == "walletconnect")
+            selectedWalletAddress = await walletconnect.SignInWalletConnectAsync();
+        else if (selectedWalletType == "walletlink")
+            selectedWalletAddress = await walletlink.ConnectWalletlink();
+
+        if (string.IsNullOrEmpty(selectedWalletAddress))
+            return;
+
+        profileheaderId = await Service.GetProfileHeaderIdAsync(selectedWalletAddress);
+
+        if (profileheaderId == Guid.Empty)
+        {
+            var profileheader_Id = await localStore.GetItemAsync<string>("headerId");
+            if (!string.IsNullOrEmpty(profileheader_Id) && new Guid(profileheader_Id) != Guid.Empty)
+            {
+                profileheaderId = new Guid(profileheader_Id);
+
+                UserProfile userProfile = new UserProfile();
+                userProfile.EthAddress = selectedWalletAddress;
+                userProfile.UserProfileHeaderId = profileheaderId;
+
+                await OnSaveNewProfileSetting(userProfile);
+            } else
+            {
+                await ShowInlineDialog();
+            }
+        }
+
+        if (profileheaderId != Guid.Empty)
+        {
+            OnSaveLocalStorageClick(profileheaderId);
+        }
+    }
+
+    async Task ShowInlineDialog() => await DialogService.OpenAsync("Simple Dialog", ds =>
+    @<div>
+        <div class="row">
+            <div class="col-md-12" Data="@objProfileSettings">
+                <RadzenLabel Style="color: black;" Text="Email Address : " />
+                <RadzenTextBox Placeholder="email" @bind-Value=@objProfileHeaderSettings.Email />
+
+                <br />
+                <RadzenLabel Style="color: black; margin-left: 27px;" Text="Username : " />
+                <RadzenTextBox Placeholder="username" @bind-Value=@objProfileHeaderSettings.UserName />
+            </div>
+        </div>
+        <br />
+        <div class="row">
+            <div class="col-md-12">
+                <RadzenButton Text="Save" Click='() => OnDialogEvents("save")' Style="margin-bottom: 10px; width: 150px" />
+            </div>
+        </div>
+        <br />
+        <div class="row">
+            <div class="col-md-12">
+                <RadzenLabel Style="color: black;" Text="If you have signed in before and want to link your account please click the button below" />
+                <RadzenButton Text="Link Account" Click='() => OnDialogEvents("linkAccount")' Style="margin-bottom: 10px; width: 150px" />
+            </div>
+        </div>
+
+    </div>);
+
+    void Open(string title, Type type, Dictionary<string, object> parameters, DialogOptions options)
+    {
+        jsRuntime.InvokeAsync<string>("console.log", "open");
+    }
+
+    void Close(dynamic result)
+    {
+        jsRuntime.InvokeAsync<string>("console.log", "close");
+    }
+
+    async void OnDialogEvents(dynamic result)
+    {
+        dialogResult = result;
+        if (result == "save")
+        {
+            if (string.IsNullOrEmpty(objProfileHeaderSettings.UserName) || string.IsNullOrEmpty(objProfileHeaderSettings.Email))
+            {
+                await jsRuntime.InvokeVoidAsync("alert", "Error! You need to input username and email.");
+            }
+            else
+            {
+                OnSaveProfileSetting();
+            }
+        }
+        else if (result == "linkAccount")
+        {
+            OnSignOutClick();
+        }
+    }
+
+    async void OnSaveProfileSetting()
+    {
+        //var objProfileHeaderInfo = new UserProfileHeader();
+
+        //for(int i = 1; i < 101; i++) {
+        //    objProfileHeaderInfo.Email = "user" + i + "@gmail.com";
+        //    objProfileHeaderInfo.UserName = "User" + i;
+
+        //    var profileSettingSave = await Service.SaveProfileAsync(objProfileHeaderInfo);
+        //}
+
+        var profileSettingSave = await Service.SaveProfileAsync(objProfileHeaderSettings);
+
+        if (profileSettingSave != Guid.Empty)
+        {
+            UserProfile userProfile = new UserProfile();
+            userProfile.EthAddress = selectedWalletAddress;
+            userProfile.UserProfileHeaderId = profileSettingSave;
+
+            var userProfileSettingSave = await Service.SaveUserProfileAsync(userProfile);
+
+            await jsRuntime.InvokeVoidAsync("alert", "Profile Saved...");
+
+            OnSaveLocalStorageClick(profileSettingSave);
+        }
+        else
+        {
+            await jsRuntime.InvokeVoidAsync("alert", "Error! Profile did not save because there is exist same username.");
+        }
+    }
+
+    async Task OnSaveNewProfileSetting(UserProfile dProfileSettings)
+    {
+        var profileSettingSave = await Service.CopyDefaultProfileToNewProfileAsync(dProfileSettings);
+
+        if (profileSettingSave != Guid.Empty)
+        {
+            //await jsRuntime.InvokeVoidAsync("alert", "Profile is Created...");
+            await localStore.SetItemAsync("headerId", profileSettingSave);
+
+            //objProfileSettings = defaultProfileSetting;
+            objProfileSettings.EthAddress = dProfileSettings.EthAddress;
+            //objProfileSettings.DefaultProfile = false;
+        }
+        else
+        {
+            await jsRuntime.InvokeVoidAsync("alert", "Error! Can't find default profile.");
+        }
+    }
+
+    private async void OnSignOutClick()
+    {
+        await localStore.RemoveItemAsync("address");
+        await localStore.RemoveItemAsync("ope_wallet_type");
+        await localStore.RemoveItemAsync("open_wallet_date");
+
+        DialogService.Close();
+    }
+
+    private async void OnSaveLocalStorageClick(Guid headerId)
+    {
+        await localStore.SetItemAsync("headerId", headerId);
+        var dateUTC = DateTime.UtcNow;
+        var dateLocalFromUTC = dateUTC.ToLocalTime();
+
+        await localStore.SetItemAsync("address", selectedWalletAddress);
+        await localStore.SetItemAsync("ope_wallet_type", selectedWalletType);
+        await localStore.SetItemAsync("open_wallet_date", dateLocalFromUTC);
+
+        NavigationManager.NavigateTo("/", true);
+    }
+
+    private void OnConnectBtnClick() {
+        isConnectClicked = true;
+    }
+
+    private void HandleValidSubmit()
+    {
+        SignInWithWallet().GetAwaiter();
+        // Process the valid form
+    }
+
+    private void OnSignInCancel()
+    {
+        NavigationManager.NavigateTo("/signin", true);
+    }
+}

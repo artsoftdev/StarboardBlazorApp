@@ -1,0 +1,96 @@
+﻿@page "/uploadnfttype"
+
+@inject NavigationManager NavigationManager
+
+<main>
+    <section class="border-bottom">
+        <div class="container-xxl">
+            <div class="row">
+                <div class="col-12 py-3">
+                    <div class="col_wrapper flex-wrap d-flex justify-content-between align-items-center ">
+                        <div class="flex_item">
+                            <button class="btn btn-muted rounded-pill border">
+                                <i class="fas fa-angle-left    "></i> Back to home
+                            </button>
+                        </div>
+                        <div class="flex_item d-flex align-items-center">
+                            <a href="#" class="btn btn-muted mx-2 shadow-0 focus_shadow_off">Home</a>
+                            <i class="fas fa-angle-right   "></i>
+                            <a href="#" class="btn btn-muted mx-2 shadow-0 focus_shadow_off">Upload Item</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section>
+        <div class="container-xxl my-5">
+            <div class="row justify-content-center">
+                <div class="col-11 col-md-10 col-lg-8">
+                    <div class="row">
+                        <div class="col-12 mb-3 mb-md-5">
+                            <div class="col_wrapper  text-center">
+                                <h3>
+                                    <span class="text_23"> Upload item</span>
+                                </h3>
+                                <p class="font_size_14 text_7">
+                                    Choose <b>“Single”</b> if you want your collectible to be one of a kind or
+                                    <b>“Multiple”</b> if you
+                                    want to sell one <br> collectible multiple times
+                                </p>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="card rounded_16">
+                                <div class="card-header bg_transparent border-0">
+                                    <img src="./img/upload_card1.png" alt="upload_card1" class="card-img-top card_uploader_img">
+                                </div>
+                                <div class="card-body px-0">
+                                    <div class="text-left text-sm-center">
+                                        <button class="btn btn-muted card_uploader_btn focus_shadow_off rounded-pill border font_size_14" @onclick="(() => OnCreateSingle())">
+                                            Create Single
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="card rounded_16">
+                                <div class="card-header bg_transparent border-0">
+                                    <img src="./img/upload_card2.png" alt="upload_card2" class="card-img-top card_uploader_img">
+                                </div>
+                                <div class="card-body px-0">
+                                    <div class="text-left text-sm-center">
+                                        <button class="btn btn-primary focus_shadow_off card_uploader_btn rounded-pill border font_size_14" @onclick="(() => OnCreateMultiple())">
+                                            Create Multiple
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-12">
+                            <p class="my-3 my-md-5 text_7 font_size_12 text-center">
+                                We do not own your private keys and cannot access your funds without your
+                                confirmation.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+</main>
+
+@code {
+    void OnCreateSingle()
+    {
+        NavigationManager.NavigateTo("nft");
+    }
+
+    void OnCreateMultiple()
+    {
+        NavigationManager.NavigateTo("nft");
+    }
+}

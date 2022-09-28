@@ -1,0 +1,19 @@
+﻿@page "/time"
+@inject IJSRuntime JsRunTime
+
+<button class="btn btn-primary" @onclick="@GetCurrentTime">Get Current Time</button>
+
+@CurrentTime
+
+@code {
+    private MarkupString CurrentTime = new MarkupString("");
+
+    async void GetCurrentTime()
+    {
+        var dateTime = await JsRunTime.InvokeAsync<string>("MyLib.GetCurrentTime");
+
+        CurrentTime = new MarkupString(dateTime);
+
+        StateHasChanged();
+    }
+}

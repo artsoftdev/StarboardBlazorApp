@@ -1,0 +1,1854 @@
+﻿@page "/"
+@page "/{username}"
+
+@using StarboardNFT.Data;
+@using StarboardNFT.Models;
+
+@using Nethereum.UI;
+@using Nethereum.Metamask;
+@using StarboardNFT.Pages.Wallets;
+@inject IJSRuntime jsRuntime;
+@inject IEthereumHostProvider _ethereumHostProvider;
+@inject NethereumAuthenticator  _nethereumAuthenticator;
+@inject Blazored.SessionStorage.ISessionStorageService sessionStorage;
+@inject ILocalStorageService localStore;
+@inject NavigationManager NavigationManager
+@inject AuctionService AuctionService
+@inject NFTService NftService
+@inject ProfileService ProfileService
+@inject NFTService NFTService
+@inject ActivityService ActivityService
+@inject NotificationService notificationService
+@using Nethereum.Web3;
+@using Nethereum.Hex.HexTypes;
+
+@inherits OwningComponentBase<ProfileService>
+
+
+<main>
+    <section>
+        <div class="container-xxl">
+            <div class="row justify-content-center">
+                <div class="col-11 col-lg-7">
+                    <div class="col_wrapper text-center py-5">
+                        <strong class="font_size_12 text_theme_c7 text-uppercase">
+                            Create, explore, & collect digital art NFTs.
+                        </strong>
+                        <h1 class="my-3">
+                            Behind each NFT is a Person with a Story
+                        </h1>
+                        <div class="text-center py-3 py-lg-0">
+                            <button class="btn btn-muted text_23 border rounded-pill px-4" @onclick="@OnStartSearch">
+                                Start your search
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    @if (featuredNFTData != null)
+    {
+        <section class="my-3 my-md-5">
+            <div class="container-xxl">
+                <div class="row">
+                    <div class="col-lg-6 mb-3 mb-md-5">
+                        <div class="col_wrapper">
+                            <!-- Swiper -->
+                            <div class="swiper-container swiper_video_gala_container">
+                                <div class="swiper-wrapper">
+                                    <div class="swiper-slide">
+                                        <div class="player_control position-relative w-100">
+
+                                            @if (featuredNFTData != null && featuredNFTData.NFT != null && featuredNFTData.NFT.FileContent != null)
+                                            {
+                                                <img src="data:image/gif;base64,@System.Convert.ToBase64String(featuredNFTData.NFT.FileContent)" class="mx-auto w-100">
+                                            }
+                                            else
+                                            {
+                                                @*<img src="./img/auction_img.png" alt="auction_img" class="mx-auto w-100">*@
+                                            }
+                                            <audio controls
+                                                   class="position-absolute bottom_10 w-100 mx-auto px-3 left_0"
+                                                   src="https://www.bensound.com/bensound-music/bensound-creativeminds.mp3"></audio>
+                                        </div>
+                                    </div>
+                                </div>
+
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-6 mb-3 mb-md-5">
+                        <div class="col_wrapper px-sm-3 px-md-5">
+                            <h1>
+                                The Gala n3twork®
+                            </h1>
+                            <br>
+                            @if (featuredNFTData != null && featuredNFTData.NFT != null)
+                            {
+                                <div class="d-flex justify-content-between">
+                                    <div class="flex_item">
+                                        <div class="d-flex align-items-start">
+                                            @if (featuredNFTData.NFT.UserProfile.UserProfileHeader.UserPhoto != null)
+                                            {
+                                                <img src="data:image/gif;base64,@System.Convert.ToBase64String(featuredNFTData.NFT.UserProfile.UserProfileHeader.UserPhoto)" class="w_h_40 mr-2" alt="user">
+                                            }
+                                            else
+                                            {
+                                                <img src="images/home/user.png" class="w_h_40 mr-2" alt="circle_profile">
+                                            }
+
+                                            <div class="flex-item">
+                                                <strong class="font_size_12 m-0 p-0 text_theme_c7">
+                                                    Creator
+                                                </strong>
+                                                <br>
+                                                <span class="font_size_14 font-weight-bold">
+                                                    @featuredNFTData.NFT.UserProfile.UserProfileHeader.UserName
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="flex_item">
+                                        <div class="d-flex align-items-start">
+                                            <svg id="user" xmlns="http://www.w3.org/2000/svg" class="w_h_40  mr-2"
+                                                 viewBox="0 0 40 40">
+                                                <rect id="user_style_" data-name="user (style)" class="w_h_40" rx="20"
+                                                      fill="#45b26b" />
+                                                <g id="icons_Stop_Line" data-name="icons/Stop/Line"
+                                                   transform="translate(8 8)">
+                                                    <path id="Shape"
+                                                          d="M10,2a40.091,40.091,0,0,0-5.2.352A2.811,2.811,0,0,0,2.352,4.8,40.092,40.092,0,0,0,2,10a40.092,40.092,0,0,0,.352,5.2A2.811,2.811,0,0,0,4.8,17.648,40.084,40.084,0,0,0,10,18a40.086,40.086,0,0,0,5.2-.352A2.811,2.811,0,0,0,17.648,15.2,40.086,40.086,0,0,0,18,10a40.084,40.084,0,0,0-.352-5.2A2.811,2.811,0,0,0,15.2,2.352,40.094,40.094,0,0,0,10,2ZM4.542.369A4.811,4.811,0,0,0,.369,4.542,42.089,42.089,0,0,0,0,10a42.091,42.091,0,0,0,.369,5.458,4.811,4.811,0,0,0,4.173,4.173A42.082,42.082,0,0,0,10,20a42.084,42.084,0,0,0,5.458-.369,4.811,4.811,0,0,0,4.173-4.173A42.084,42.084,0,0,0,20,10a42.082,42.082,0,0,0-.369-5.458A4.811,4.811,0,0,0,15.458.369,42.091,42.091,0,0,0,10,0,42.089,42.089,0,0,0,4.542.369Z"
+                                                          transform="translate(2 2)" fill="#fcfcfd" fill-rule="evenodd" />
+                                                </g>
+                                            </svg>
+
+
+                                            <div class="flex-item">
+                                                <strong class="font_size_12 m-0 p-0 text_theme_c7">
+                                                    Instant price
+                                                </strong>
+                                                <br>
+                                                <span class="font_size_14 font-weight-bold">
+                                                        @(Math.Round(featuredNFTData.FiatBuyOutPrice / Startup.CoinPriceDict["ETH"], 8, MidpointRounding.AwayFromZero).ToString().TrimEnd('0'))
+                                                </span>
+                                            </div>
+                                        </div>
+                                        <br>
+
+                                    </div>
+                                </div>
+                            }
+
+
+                            <!-- card -->
+                            <div class="card bg-white bg_dark_mode_23 text-center shadow-sm p-3 p-md-4 rounded_24">
+                                <div class="card-header border-0 bg_transparent">
+                                    <span>Current Bid</span>
+                                    <h2>
+                                        @currentEthPrice ETH
+                                    </h2>
+                                    @if (auction != null)
+                                    {
+                                        <h4 class="text_theme_c7">
+                                            $@auction.CurrentBidPrice
+                                        </h4>
+                                    }
+                                    else
+                                    {
+                                        <h4 class="text_theme_c7">
+                                            $0
+                                        </h4>
+                                    }
+                                </div>
+
+                                <div class="card-body">
+                                    <div class="action_counter">
+                                        <h6 class="text_23 mb-0">
+                                            Auction ending in
+                                        </h6>
+                                        <div class="d-flex justify-content-center">
+                                            <div class="counter_wrapper p-2 p-sm-4">
+                                                <h5>
+                                                    @leftTime.Hours
+                                                </h5>
+                                                <span class="text_theme_c7">
+                                                    Hrs
+                                                </span>
+                                            </div>
+                                            <div class="counter_wrapper p-2 p-sm-4">
+                                                <h5>
+                                                    @leftTime.Minutes
+                                                </h5>
+                                                <span class="text_theme_c7">
+                                                    mins
+                                                </span>
+                                            </div>
+                                            <div class="counter_wrapper p-2 p-sm-4">
+                                                <h5>
+                                                    @leftTime.Seconds
+                                                </h5>
+                                                <span class="text_theme_c7">
+                                                    secs
+                                                </span>
+                                            </div>
+
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="btn_handle my-3">
+                                <button class="btn btn-primary w-100 border rounded-pill mb-2" @onclick="OnFeaturedNFTBid">
+                                    Place a bid
+                                </button>
+                                <button class="btn btn-muted text_23 w-100 border rounded-pill">
+                                    View a item
+                                </button>
+                            </div>
+                            <div class="slider_handle d-flex justify-content-center justify-content-lg-start">
+                                <button class="btn btn-muted rounded-pill w_h_40 btn_prev_next"
+                                        data-swiper_video_gala="prev">
+                                    <i class="fas fa-arrow-left text_23   "></i>
+                                </button>
+                                <button class="btn btn-muted rounded-pill w_h_40 btn_prev_next"
+                                        data-swiper_video_gala="next">
+                                    <i class="fas fa-arrow-right  text_23  "></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    }
+
+    @if (featuredProfile != null)
+    {
+        <section class="my-5">
+            <div class="container-xxl my-3 my-md-5">
+                <div class="row">
+                    <div class="col-md-6 col-lg-4">
+                        <div class="col_wrapper">
+
+                            @if (featuredUserAuctionList.Count > 0 && featuredUserAuctionList[0].NFTData.NFT != null)
+                            {
+                                <img src="data:image/gif;base64,@System.Convert.ToBase64String(featuredUserAuctionList[0].NFTData.NFT.FileContent)" class="w-100" alt="user_eth">
+
+                                <div class="d-flex justify-content-between mt-3">
+                                    <div class="flex_item">
+                                        <div class="d-flex align-items-start">
+                                            @if (featuredProfile.UserPhoto != null)
+                                            {
+                                                <img src="data:image/gif;base64,@System.Convert.ToBase64String(featuredProfile.UserPhoto)" class="w_h_40 mr-2" alt="user">
+                                            }
+                                            else
+                                            {
+                                                <img src="images/home/user.png" class="w_h_40 mr-2" alt="user">
+                                            }
+                                            <div class="flex-item">
+                                                <h4 class="mb-0">
+                                                    The future of ETH®
+                                                </h4>
+                                                <span class="font_size_14 font-weight-bold">
+                                                    @featuredUserAuctionList[0].NFTData.UniqueNumberOfMintedNFT in @featuredUserAuctionList[0].NFTData.NFT.TotalNumberOfMintedNFT
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="flex_item">
+                                        <div class="d-flex align-items-start">
+                                            <div class="flex-item">
+                                                <strong class="font_size_12 m-0 p-0 text_theme_c7">
+                                                    Highest bid
+                                                </strong>
+                                                <br>
+                                                <span class="font_size_14 font-weight-bold border_text_45 d-inline-block px-1 rounded-lg  text_45">
+                                                    @(Math.Round(featuredUserAuctionList[0].CurrentBidPrice / Startup.CoinPriceDict["ETH"], 8, MidpointRounding.AwayFromZero).ToString().TrimEnd('0') + " ETH")
+                                                </span>
+                                            </div>
+                                        </div>
+                                        <br>
+
+                                    </div>
+                                </div>
+                            }
+
+                        </div>
+
+                    </div>
+                    <div class="col-md-6 col-lg-5">
+                        <div class="col_wrapper border-right border_right_less_lg_none">
+                            <ul class="list-group">
+                                @foreach (var featuredUserAuction in featuredUserAuctionList.Take(3))
+                                {
+                                    <li class="list-group-item bg_transparent border-0 d-flex flex-wrap flex-md-nowrap  justify-content-sm-start">
+                                        <img src="data:image/gif;base64,@System.Convert.ToBase64String(featuredUserAuction.NFTData.NFT.FileContent)" class="h_150" alt="home_img">
+                                        <div class="content_wrapper p-3">
+                                            <b>@featuredUserAuction.NFTData.NFT.Title</b>
+                                            <br>
+                                            <div class="d-flex mt-2 justify-content-between align-items-center">
+                                                @if (featuredUserAuction.NFTData.NFT.UserProfile.UserProfileHeader.UserPhoto != null)
+                                                {
+                                                    <img style="width: 40px;" src="data:image/gif;base64,@System.Convert.ToBase64String(featuredUserAuction.NFTData.NFT.UserProfile.UserProfileHeader.UserPhoto)" alt="user">
+                                                }
+                                                else
+                                                {
+                                                    <img style="width: 40px;" src="images/home/user.png" alt="user">
+                                                }
+                                                <span class="font_size_14 font-weight-bold mx-1 border_text_45 d-inline-block px-1 rounded-lg  text_45">
+                                                    @(Math.Round(featuredUserAuction.CurrentBidPrice / Startup.CoinPriceDict["ETH"], 8, MidpointRounding.AwayFromZero).ToString().TrimEnd('0') + " ETH")
+                                                </span>
+                                                <span>
+                                                    @featuredUserAuction.NFTData.UniqueNumberOfMintedNFT in @featuredUserAuction.NFTData.NFT.TotalNumberOfMintedNFT
+                                                </span>
+                                            </div>
+                                            <br>
+                                            <button class="btn text_23 btn-muted rounded-pill border py-1 px-3" @onclick="() => OnPlaceBid(featuredUserAuction.Id)">
+                                                Place a bid
+                                            </button>
+                                        </div>
+                                    </li>
+                                }
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="col-lg-3">
+                        <div class="col_wrapper">
+                            <span>
+                                Latest upload from creators 🔥
+                            </span>
+                            <ul class="list-group  latest_upload_creators_list flex-row flex-lg-column flex-wrap">
+
+                                @foreach (var latestAuction in latestAuctionList.Take(5))
+                                {
+                                    <li class="list-group-item bg_transparent border_bottom_less_lg_none border-bottom border-top-0 border-left-0 border-right-0 mb-2" style="cursor: pointer;" @onclick="() => OnPlaceBid(latestAuction.Id)">
+                                        <div class="d-flex align-items-center">
+                                            <div class="img_wrapper" data-notify-list="6">
+                                                @if (latestAuction.NFTData.NFT.UserProfile.UserProfileHeader.UserPhoto != null)
+                                                {
+                                                    <img style="width: 40px;" src="data:image/gif;base64,@System.Convert.ToBase64String(latestAuction.NFTData.NFT.UserProfile.UserProfileHeader.UserPhoto)" alt="user">
+                                                }
+                                                else
+                                                {
+                                                    <img style="width: 40px;" src="images/home/user.png" alt="user">
+                                                }
+                                            </div>
+                                            <div class="content_wrapper ml-2 p-2">
+                                                <b>
+                                                    @latestAuction.NFTData.NFT.UserProfile.UserProfileHeader.UserName
+                                                </b>
+                                                <br>
+                                                <b>@(Math.Round(latestAuction.CurrentBidPrice / Startup.CoinPriceDict["ETH"], 8, MidpointRounding.AwayFromZero).ToString().TrimEnd('0')) </b> ETH
+                                            </div>
+                                        </div>
+                                    </li>
+                                }
+                            </ul>
+                            <div class="p-2">
+                                <a href="#" class="btn btn-muted border rounded-pill text_23">
+                                    Discover more <i class="fas fa-arrow-right pl-3    "></i>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    }
+    <section class="p-1 p-md-5 bg_f4 my-5">
+        <div class="container-xxl my-3 my-md-5">
+            <div class="row">
+                <div class="col-12 my-3 my-md-5">
+                    <div class="col_wrapper">
+                        <div class="d-flex justify-content-between flex-wrap flex-sm-nowrap">
+                            <div class="flex_item mr-sm-2 w_100_less_sm " style="min-width: 200px;">
+                                <div class="form-group form_custom_group_sb">
+                                    <select class="form-control w_100_less_sm  text-black bg_transparent" name="" id="" @onchange=@OnChangeSellerType>
+                                        <option value="Popular Sellers">Popular Sellers</option>
+                                        <option value="New Sellers">New Sellers</option>
+                                        <option value="Recent Sellers">Recent Sellers</option>
+                                    </select>
+                                </div>
+                            </div>
+                            @*<div class="flex_item w_100_less_sm form_custom_group_sb ">
+                                    <input type="text" name="" class="datepicker form-control w_100_less_sm" placeholder="Today">
+                                </div>*@
+                        </div>
+                    </div>
+                </div>
+                <div class="col-12">
+                    <div class="col_wrapper">
+
+                        <div class="swiper_wrapper_main position-relative">
+                            <div class="btn_wrapper d-none d-md-block">
+                                <button class="btn btn-muted rounded-pill w_h_40 btn_prev_next position-absolute position_top_center"
+                                        data-swiper_popular_seller="prev">
+                                    <i class="fas fa-arrow-left    "></i>
+                                </button>
+                                <button class="btn btn-muted rounded-pill w_h_40 btn_prev_next position-absolute position_top_center"
+                                        style="right: 0" data-swiper_popular_seller="next">
+                                    <i class="fas fa-arrow-right    "></i>
+                                </button>
+                            </div>
+
+                            <div class="swiper_content_main mx-md-5">
+                                <!-- Swiper -->
+                                <div class="swiper-container popular_seller_swiper ">
+                                    <div class="swiper-wrapper p-2">
+                                        @foreach (var seller in currentSellerList.Select((Value, Index) => new { Value, Index }))
+                                        {
+                                            <div class="swiper-slide" style="cursor : pointer;" @onclick="() => OnSellerItemClick(seller.Value.FirstOrDefault().NFTData.NFT.UserProfile.UserProfileHeaderId)">
+                                                <div class="card p-3 w-100 border-0 rounded_16 popular_custom_card bg-white ">
+                                                    <div class="card-header px-0 d-flex bg_transparent">
+                                                        <button class="btn btn-primary text-white rounded-pill btn-sm">
+                                                            <i class="fas fa-trophy    "></i> <span>#@(seller.Index + 1)</span>
+                                                        </button>
+                                                        <button class="btn rounded-lg  border_text_b1  btn-sm ml-auto btn-muted" @onclick="() => OnFollowUser(seller.Value.FirstOrDefault().NFTData.NFT.UserProfile.UserProfileHeaderId)" @onclick:stopPropagation="true">
+                                                            <i class="fas fa-plus text_23   "></i>
+                                                        </button>
+                                                        <button class="btn btn-muted border-0 py-0  btn-sm ml-2">
+                                                            <svg xmlns="http://www.w3.org/2000/svg" width="16.263"
+                                                                 height="16.263" viewBox="0 0 16.263 16.263">
+                                                                <g id="icons_Arrow_expand_Line"
+                                                                   data-name="icons/Arrow expand/Line"
+                                                                   transform="translate(-4.368 -3.868)">
+                                                                    <path id="vector_Stroke_"
+                                                                          data-name="vector (Stroke)"
+                                                                          d="M9.091-.265A1,1,0,0,0,10.5-.322l3.231-3.5a1,1,0,0,0,0-1.357L10.5-8.678a1,1,0,0,0-1.413-.057,1,1,0,0,0-.057,1.413L10.716-5.5H1a1,1,0,0,0-1,1,1,1,0,0,0,1,1h9.716L9.034-1.678A1,1,0,0,0,9.091-.265Z"
+                                                                          transform="translate(10.732 20.132) rotate(-45)"
+                                                                          fill="#b1b5c3" />
+                                                                </g>
+                                                            </svg>
+                                                        </button>
+                                                    </div>
+                                                    <div class="card-body text-center p-3 p-md-4">
+                                                        <div class="img_wrapper">
+                                                            <div class="w_h_60 text-center mx-auto">
+                                                                @if (seller.Value.FirstOrDefault().NFTData.NFT.UserProfile.UserProfileHeader.UserPhoto != null)
+                                                                {
+                                                                    <img src="data:image/gif;base64,@System.Convert.ToBase64String(seller.Value.FirstOrDefault().NFTData.NFT.UserProfile.UserProfileHeader.UserPhoto)" class="h-100 w-100 size_cover" alt="user">
+                                                                }
+                                                                else
+                                                                {
+                                                                    <img src="images/home/user.png" class="w_h_40 d-inline-block" alt="user">
+                                                                }
+                                                            </div>
+                                                        </div>
+                                                        <strong class="username font_size_14">
+                                                            @seller.Value.FirstOrDefault().NFTData.NFT.UserProfile.UserProfileHeader.UserName;
+                                                        </strong>
+                                                        <br>
+                                                        <div class="currency font_size_12">
+                                                            @Math.Round(seller.Value.Sum(y => y.NFTData.EthPurchaseAmount), 2) &nbsp; <span class="text_theme_c7">ETH</span>
+                                                        </div>
+
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        }
+                                    </div>
+
+                                </div>
+                            </div>
+
+
+                        </div>
+
+                        <div class="btn_wrapper d-flex justify-content-center d-md-none">
+                            <button class="btn btn-muted rounded-pill w_h_40 btn_prev_next mr-2"
+                                    data-swiper_popular_seller="prev">
+                                <i class="fas fa-arrow-left    "></i>
+                            </button>
+                            <button class="btn btn-muted rounded-pill w_h_40 btn_prev_next"
+                                    style="right: 0" data-swiper_popular_seller="next">
+                                <i class="fas fa-arrow-right    "></i>
+                            </button>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </section>
+    <section class="p-1 p-md-5">
+        <div class="container-xxl my-3 mb-my-5">
+            <div class="row">
+                <div class="col-12">
+                    <div class="col_wrapper">
+                        <div class="d-flex justify-content-between flex-wrap">
+                            <div class="flex_item mb-2">
+                                <h3 class="text_23 d-none d-sm-block">
+                                    Collectors Only
+                                </h3>
+                                <h3 class="text_23 d-sm-none">
+                                    Hot bid
+                                </h3>
+                            </div>
+                            <div class="flex_item mb-2">
+                                <div class="slider_handle">
+                                    <button class="btn btn-muted rounded-pill w_h_40 btn_prev_next"
+                                            data-swiper_collectors_only="prev">
+                                        <i class="fas fa-arrow-left    "></i>
+                                    </button>
+                                    <button class="btn btn-muted rounded-pill w_h_40 btn_prev_next"
+                                            data-swiper_collectors_only="next">
+                                        <i class="fas fa-arrow-right    "></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-12">
+                    <div class="col_wrapper">
+                        <!-- Swiper -->
+                        <div class="swiper-container collectors_card_swiper">
+                            <div class="swiper-wrapper py-5">
+
+                                @if (selected_account_addr != "" && recentViewNFTList.Count() > 0)
+                                {
+                                    @foreach (var recentViewNFT in recentViewNFTList)
+                                    {
+                                        <div class="swiper-slide">
+                                            <div class="card w-100 shadow-sm collectors_card border-0 d-inline-block bg_transparent">
+                                                <div class="card-header p-0 border-0  bg_transparent collectors_card_header position-relative">
+                                                    <img src="data:image/gif;base64,@System.Convert.ToBase64String(recentViewNFT.NFTData.NFT.FileContent)" class="h-100 w-100 size_cover"
+                                                         alt="bitcoin">
+                                                    <div class="collectors_card_header_content p-2">
+                                                        <div class="d-flex justify-content-between w-100 align-items-center">
+                                                            <button class="btn bg_teal text-white btn-sm text-uppercase invisible">
+                                                                purchasing !
+                                                            </button>
+                                                            <button class="btn d-flex justify-content-center align-items-center btn-light border rounded-circle w_h_40" @onclick="() => OnLikeNFT(recentViewNFT.NFTDataId, recentViewNFT.NFTData.NFT.UserProfile.UserProfileHeaderId)">
+                                                                <i class="fas fa-heart text-dark btn-sm    "></i>
+                                                            </button>
+
+                                                        </div>
+
+                                                        <div class="bit_button bottom_0">
+                                                            <button class="btn btn-primary w-100 border rounded-pill mb-2" @onclick="() => OnPlaceBidByNFTData(recentViewNFT.NFTDataId)">
+                                                                Place a bid
+                                                            </button>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div class="card-body">
+                                                    <div class="d-flex justify-content-between mb-2">
+                                                        <span>
+                                                            @recentViewNFT.NFTData.NFT.Title
+                                                        </span>
+                                                        <span class="font_size_14 font-weight-bold border_text_45 d-inline-block px-1 rounded-lg  text_45">
+                                                            @(Math.Round(recentViewNFT.Auction.CurrentBidPrice / Startup.CoinPriceDict["ETH"], 8, MidpointRounding.AwayFromZero).ToString().TrimEnd('0') + "ETH")
+                                                        </span>
+                                                    </div>
+                                                    <div class="d-flex justify-content-between">
+                                                        <div class="stock_user stock_user_img d-flex align-items-center">
+                                                            @if (recentViewNFT.NFTData.NFT.UserProfile.UserProfileHeader.UserPhoto != null)
+                                                            {
+                                                                <img src="data:image/gif;base64,@System.Convert.ToBase64String(recentViewNFT.NFTData.NFT.UserProfile.UserProfileHeader.UserPhoto)" class="w_h_40" alt="user">
+                                                            }
+                                                            else
+                                                            {
+                                                                <img src="images/home/user.png" class="w_h_40" alt="user">
+                                                            }
+                                                        </div>
+                                                        <span>
+                                                            @recentViewNFT.NFTData.UniqueNumberOfMintedNFT in @recentViewNFT.NFTData.NFT.TotalNumberOfMintedNFT
+                                                        </span>
+                                                    </div>
+
+                                                </div>
+                                                <div class="card-footer bg_transparent">
+                                                </div>
+                                            </div>
+                                        </div>
+                                    }
+                                }
+                                else if(randomRecentViewNFTList.Count() > 0)
+                                {
+                                    @foreach (var recentViewNFT in randomRecentViewNFTList)
+                                    {
+                                        <div class="swiper-slide">
+                                            <div class="card w-100 shadow-sm collectors_card border-0 d-inline-block bg_transparent">
+                                                <div class="card-header p-0 border-0  bg_transparent collectors_card_header position-relative">
+                                                    @if (recentViewNFT.NFT.FileType == "image/jpg" || recentViewNFT.NFT.FileType == "image/jpg" || recentViewNFT.NFT.FileType == "image/gif")
+                                                    {
+                                                        <img src="data:image/gif;base64,@System.Convert.ToBase64String(recentViewNFT.NFT.FileContent)" class="h-100 w-100 size_cover"
+                                                             alt="bitcoin">
+                                                    }
+                                                    else if (recentViewNFT.NFT.FileType == "video/mp4" || recentViewNFT.NFT.FileType == "video/mov")
+                                                    {
+                                                        <video autoplay src="data:video/mp4;base64,@System.Convert.ToBase64String(recentViewNFT.NFT.FileContent)" class="h-100 w-100 size_cover"
+                                                               alt="bitcoin">
+                                                        </video>
+                                                    }
+                                                    else if (recentViewNFT.NFT.FileType == "video/mp4" || recentViewNFT.NFT.FileType == "video/mov")
+                                                    {
+                                                        <video src="data:video/mp4;base64,@System.Convert.ToBase64String(recentViewNFT.NFT.FileContent)" class="h-100 w-100 size_cover"
+                                                               alt="bitcoin">
+                                                        </video>
+                                                    }
+                                                    else if (recentViewNFT.NFT.FileType == "audio/mp3" || recentViewNFT.NFT.FileType == "audio/wav")
+                                                    {
+                                                        <div class="file__output__wrapper" style="overflow-y: auto">
+                                                            <div class="file__output p-3 h-100 d-flex justify-content-center align-items-center">
+                                                                <i class="fas fa-file-archive text-white-50 fa-5x    "></i>
+                                                            </div>
+                                                        </div>
+                                                    }
+                                                    else if (recentViewNFT.NFT.FileType == "text/txt" || recentViewNFT.NFT.FileType == "text/md")
+                                                    {
+                                                        <div class="file__output__wrapper" style="overflow-y: auto">
+                                                            <div class="text__output p-3">
+                                                                @if (recentViewNFT.NFT.FileContent != null)
+                                                                    @recentViewNFT.NFT.FileContent
+                                                            </div>
+                                                        </div>
+                                                    }
+                                                    else if (recentViewNFT.NFT.FileType == "application/pdf" || recentViewNFT.NFT.FileType == "application/psd" || recentViewNFT.NFT.FileType == "application/ai")
+                                                    {
+                                                        <div class="file__output__wrapper" style="overflow-y: auto">
+                                                            <div class="file__output p-3 h-100 d-flex justify-content-center align-items-center">
+                                                                <i class="fas fa-file-archive text-white-50 fa-5x    "></i>
+                                                            </div>
+                                                        </div>
+                                                    }
+                                                    <div class="collectors_card_header_content p-2">
+                                                        <div class="d-flex justify-content-between w-100 align-items-center">
+                                                            <button class="btn bg_teal text-white btn-sm text-uppercase invisible">
+                                                                purchasing !
+                                                            </button>
+                                                            <button class="btn d-flex justify-content-center align-items-center btn-light border rounded-circle w_h_40" @onclick="() => OnLikeNFT(recentViewNFT.Id, recentViewNFT.NFT.UserProfile.UserProfileHeaderId)">
+                                                                <i class="fas fa-heart text-dark btn-sm    "></i>
+                                                            </button>
+
+                                                        </div>
+
+                                                        <div class="bit_button bottom_0">
+                                                            <button class="btn btn-primary w-100 border rounded-pill mb-2" @onclick="() => OnPlaceBidByNFTData(recentViewNFT.Id)">
+                                                                Place a bid
+                                                            </button>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div class="card-body">
+                                                    <div class="d-flex justify-content-between mb-2">
+                                                        <span>
+                                                            @recentViewNFT.NFT.Title
+                                                        </span>
+                                                        <span class="font_size_14 font-weight-bold border_text_45 d-inline-block px-1 rounded-lg  text_45">
+                                                            @Math.Round(recentViewNFT.FiatStartPrice / Startup.CoinPriceDict["ETH"], 8, MidpointRounding.AwayFromZero).ToString().TrimEnd('0');
+                                                        </span>
+                                                    </div>
+                                                    <div class="d-flex justify-content-between">
+                                                        <div class="stock_user stock_user_img d-flex align-items-center">
+                                                            @*<img src="data:image/gif;base64,@System.Convert.ToBase64String(recentViewNFT.NFT.UserProfile.UserProfileHeader.UserPhoto)" class="w_h_40" alt="user">*@
+                                                        </div>
+                                                        <span>
+                                                            @recentViewNFT.UniqueNumberOfMintedNFT in @recentViewNFT.NFT.TotalNumberOfMintedNFT
+                                                        </span>
+                                                    </div>
+
+                                                </div>
+                                                <div class="card-footer bg_transparent">
+                                                    <div class="d-flex justify-content-between mb-2 font_size_12">
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    }
+                                }
+
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    <section class="p-3 p-md-5 bg_f4">
+        <div class="container-xxl">
+            <div class="row">
+                <div class="col-12 mb-3">
+                    <div class="d-flex justify-content-between flex-wrap">
+                        <div class="flex_item mb-2">
+                            <h3 class="text_23 d-none d-sm-block">
+                                Gala collections
+                            </h3>
+                            <h3 class="text_23  d-sm-none">
+                                Hot collections
+                            </h3>
+                        </div>
+                        <div class="flex_item mb-2">
+                            <div class="slider_handle d-none d-md-block">
+                                <button class="btn btn-muted rounded-pill mr-3 w_h_40 btn_prev_next"
+                                        data-swiper_gala_collections="prev">
+                                    <i class="fas fa-arrow-left    "></i>
+                                </button>
+                                <button class="btn btn-muted rounded-pill w_h_40 btn_prev_next"
+                                        data-swiper_gala_collections="next">
+                                    <i class="fas fa-arrow-right    "></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-12">
+                    <div class="col_wrapper">
+                        <!-- Swiper -->
+                        <div class="swiper-container gala_collections_card_swiper">
+                            <div class="swiper-wrapper py-5">
+
+                                @foreach (var followNFT in followNFTList)
+                                {
+                                    <div class="swiper-slide">
+
+                                        <div class="card border-0 shadow-0 bg_transparent">
+                                            <div class="card-header bg-white border-0 p-0">
+                                                <img src="data:image/gif;base64,@System.Convert.ToBase64String(followNFT.NFTData.NFT.FileContent)" class="w-100" alt="">
+                                            </div>
+                                            <div class="card-body px-0">
+                                                <div class="d-flex justify-content-between">
+                                                    <div class="flex_item bg-white">
+                                                        <img src="data:image/gif;base64,@System.Convert.ToBase64String(followNFT.NFTData.NFT.FileContent)" class="w-100" alt="">
+                                                    </div>
+                                                    <div class="flex_item bg-white">
+                                                        <img src="data:image/gif;base64,@System.Convert.ToBase64String(followNFT.NFTData.NFT.FileContent)" class="w-100" alt="">
+                                                    </div>
+                                                    <div class="flex_item bg-white">
+                                                        <img src="data:image/gif;base64,@System.Convert.ToBase64String(followNFT.NFTData.NFT.FileContent)" class="w-100" alt="">
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="card-footer border-0 bg-whtie">
+                                                <h4>
+                                                    @followNFT.NFTData.NFT.Title
+                                                </h4>
+                                                <div class="d-flex justify-content-between align-items-center font_size_14">
+                                                    <div class="flex_item d-flex align-items-center">
+                                                        <img src="data:image/gif;base64,@System.Convert.ToBase64String(followNFT.NFTData.NFT.UserProfile.UserProfileHeader.UserPhoto)" alt="" class="w_h_40 mr-2">
+                                                        <span>By @followNFT.NFTData.NFT.UserProfile.UserProfileHeader.UserName</span>
+                                                    </div>
+                                                    <div class="flex_item">
+                                                        <span class="p-1 border">
+                                                            @followNFT.NFTData.NFT.FavoriteCount favorites
+                                                        </span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                }
+                            </div>
+                        </div>
+
+                        <div class="slider_handle text-center d-md-none mb-5">
+                            <button class="btn btn-muted rounded-pill w_h_40 btn_prev_next"
+                                    data-swiper_gala_collections="prev">
+                                <i class="fas fa-arrow-left    "></i>
+                            </button>
+                            <button class="btn btn-muted rounded-pill w_h_40 btn_prev_next"
+                                    data-swiper_gala_collections="next">
+                                <i class="fas fa-arrow-right    "></i>
+                            </button>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    <section class="p-3 p-md-5 mt-3 mt-md-5">
+        <div class="container-xxl">
+            <div class="row">
+                <div class="col-12 mb-3">
+                    <h3 class="text_23">
+                        Discover
+                    </h3>
+                </div>
+                <div class="col-12">
+                    <div class="col_wrapper filter_controler pb-3 border-bottom">
+                        <div class="d-flex justify-content-between flex-wrap align-items-center ">
+                            <div class="flex_item mb-2 mr-md-2 w_100_less_sm">
+                                <div class="form-group mb-0 pb-0 form_custom_group_sb">
+                                    <select class="form-control w_100_less_sm" name="" @onchange=@OnChangeDiscoverSearch>
+                                        @if (selectedFilterOption == "Recently Added")
+                                        {
+                                            <option value="Recently Added" selected="selected">Recently Added</option>
+                                        }
+                                        else
+                                        {
+                                            <option value="Recently Added">Recently Added</option>
+                                        }
+
+                                        <option value="Ending Soon">Ending Soon</option>
+                                        <option value="Most Viewed">Most Viewed</option>
+                                        <option value="Most Favorited">Most Favorited</option>
+                                        <option value="Price: Low to High">Price: Low to High</option>
+                                        <option value="Price: High to Low">Price: High to Low</option>
+                                        <option value="Most Likes">Most Likes</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="flex_item flex-grow-1 mb-2 mr-md-2 d-none d-sm-block">
+                                <!-- Nav tabs -->
+                                <ul class="nav nav-tabs justify-content-center border-0">
+                                    <li class="nav-item">
+                                        @if (selectedCategory == NFT.Categories.AllItems)
+                                        {
+                                            <button class="btn border-0 btn-sm btn-muted nav-link btn_active_component rounded-pill px-3 py-1 active" @onclick='() => OnChangeDiscoverCategory(NFT.Categories.AllItems)'
+                                                    data-toggle="tab" data-target="#all_items">
+                                                All items
+                                            </button>
+                                        }
+                                        else
+                                        {
+                                            <button class="btn border-0 btn-sm btn-muted nav-link btn_active_component rounded-pill px-3 py-1" @onclick='() => OnChangeDiscoverCategory(NFT.Categories.AllItems)'
+                                                    data-toggle="tab" data-target="#all_items">
+                                                All items
+                                            </button>
+                                        }
+                                    </li>
+                                    <li class="nav-item">
+                                        @if (selectedCategory == NFT.Categories.Art)
+                                        {
+                                            <button class="btn border-0 btn-sm btn-muted nav-link btn_active_component rounded-pill px-3 py-1 active" @onclick='() => OnChangeDiscoverCategory(NFT.Categories.Art)'
+                                                    data-toggle="tab" data-target="#all_items">
+                                                Art
+                                            </button>
+                                        }
+                                        else
+                                        {
+                                            <button class="btn border-0 btn-sm btn-muted nav-link btn_active_component rounded-pill px-3 py-1" @onclick='() => OnChangeDiscoverCategory(NFT.Categories.Art)'
+                                                    data-toggle="tab" data-target="#all_items">
+                                                Art
+                                            </button>
+                                        }
+                                    </li>
+                                    <li class="nav-item">
+                                        @if (selectedCategory == NFT.Categories.Game)
+                                        {
+                                            <button class="btn border-0 btn-sm btn-muted nav-link btn_active_component rounded-pill px-3 py-1 active" @onclick='() => OnChangeDiscoverCategory(NFT.Categories.Game)'
+                                                    data-toggle="tab" data-target="#all_items">
+                                                Game
+                                            </button>
+                                        }
+                                        else
+                                        {
+                                            <button class="btn border-0 btn-sm btn-muted nav-link btn_active_component rounded-pill px-3 py-1" @onclick='() => OnChangeDiscoverCategory(NFT.Categories.Game)'
+                                                    data-toggle="tab" data-target="#all_items">
+                                                Game
+                                            </button>
+                                        }
+                                    </li>
+                                    <li class="nav-item">
+                                        @if (selectedCategory == NFT.Categories.Photography)
+                                        {
+                                            <button class="btn border-0 btn-sm btn-muted nav-link btn_active_component rounded-pill px-3 py-1 active" @onclick='() => OnChangeDiscoverCategory(NFT.Categories.Photography)'
+                                                    data-toggle="tab" data-target="#all_items">
+                                                Photography
+                                            </button>
+                                        }
+                                        else
+                                        {
+                                            <button class="btn border-0 btn-sm btn-muted nav-link btn_active_component rounded-pill px-3 py-1" @onclick='() => OnChangeDiscoverCategory(NFT.Categories.Photography)'
+                                                    data-toggle="tab" data-target="#all_items">
+                                                Photography
+                                            </button>
+                                        }
+                                    </li>
+                                    <li class="nav-item">
+                                        @if (selectedCategory == NFT.Categories.Music)
+                                        {
+                                            <button class="btn border-0 btn-sm btn-muted nav-link btn_active_component rounded-pill px-3 py-1 active" @onclick='() => OnChangeDiscoverCategory(NFT.Categories.Music)'
+                                                    data-toggle="tab" data-target="#all_items">
+                                                Music
+                                            </button>
+                                        }
+                                        else
+                                        {
+                                            <button class="btn border-0 btn-sm btn-muted nav-link btn_active_component rounded-pill px-3 py-1" @onclick='() => OnChangeDiscoverCategory(NFT.Categories.Music)'
+                                                    data-toggle="tab" data-target="#all_items">
+                                                Music
+                                            </button>
+                                        }
+                                    </li>
+                                    <li class="nav-item">
+                                        @if (selectedCategory == NFT.Categories.Video)
+                                        {
+                                            <button class="btn border-0 btn-sm btn-muted nav-link btn_active_component rounded-pill px-3 py-1 active" @onclick='() => OnChangeDiscoverCategory(NFT.Categories.Video)'
+                                                    data-toggle="tab" data-target="#all_items">
+                                                Video
+                                            </button>
+                                        }
+                                        else
+                                        {
+                                            <button class="btn border-0 btn-sm btn-muted nav-link btn_active_component rounded-pill px-3 py-1" @onclick='() => OnChangeDiscoverCategory(NFT.Categories.Video)'
+                                                    data-toggle="tab" data-target="#all_items">
+                                                Video
+                                            </button>
+                                        }
+                                    </li>
+                                </ul>
+                            </div>
+                            <div class="flex_item mb-2 d-none d-sm-block">
+                                <button class="btn btn-primary rounded-pill px-3 py-1 btn-sm" @onclick="@ClearFilter">
+                                    Filter <i class="fas text-white ml-2 fa-times    "></i>
+                                </button>
+                            </div>
+                            <div class="flex_item mb-2 d-sm-none w_100_less_sm">
+                                <button class="btn btn-primary rounded-pill px-3 py-1  w_100_less_sm">
+                                    Advanced Filter
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-12 d-none d-sm-block">
+                    <div class="col_wrapper py-3 py-md-5">
+                        <div class="d-flex justify-content-between align-items-start">
+                            @*<div class="form-group mb-2 mr-2 w-100">
+                                    <label for="" class="font_size_12">PRICE</label>
+                                    <div class="form_custom_group_sb">
+                                        <select class="form-control font_size_14 w-100">
+                                            <option value="Highest Price">Higest Price</option>
+                                            <option value="Lowest Price">Lowest Price</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="form-group mb-2 mr-2 w-100">
+                                    <label for="" class="font_size_12">LIKES</label>
+                                    <div class="form_custom_group_sb">
+                                        <select class="form-control font_size_14 w-100">
+                                            <option value="Most Likes">Most Likes</option>
+                                            <option value="Low Likes">Low Likes</option>
+                                        </select>
+                                    </div>
+
+                                </div>*@
+                            <div class="form-group mb-2 mr-2 w-100">
+                                <label for="" class="font_size_12">CREATOR</label>
+                                <div class="form_custom_group_sb">
+                                    <select class="form-control font_size_14 w-100" @onchange="OnChangeDiscoverSearch">
+                                        @if (isVerified == false)
+                                        {
+                                            <option value="Non-verified" selected="selected">All</option>
+                                        }
+                                        else
+                                        {
+                                            <option value="Non-verified">All</option>
+                                        }
+                                        <option value="Verified only">Verified only</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="form-group mb-2 mr-2 w-100">
+                            </div>
+                            <div class="form-group mb-2 mr-2 w-100">
+                                <label for="" class="font_size_12">PRICE RANGE</label>
+                                <div class="input_range_wrapper font_size_14">
+                                    <div class="range-wrap">
+                                        <input type="range" max="10" step="0.1" value="@priceRange" class="range form-control focus_shadow_off" @onchange="@OnChangeDiscoverSearch">
+                                        <output class="bubble text-nowrap" value="0 ETH"></output>
+                                    </div>
+                                    <div class="input_range_value d-flex justify-content-between">
+                                        <span>0.01 ETH</span><span>10 ETH</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- tab panes col -->
+                <div class="col-12">
+                    <div class="col_wrapper">
+                        <!-- Tab panes -->
+                        <div class="tab-content">
+                            <div id="all_items" class=" tab-pane active">
+
+                                <div class="row">
+                                    @if (selectedFilterOption == "Most Viewed")
+                                    {
+                                        @foreach (var auction in AuctionMostViewedList)
+                                        {
+                                            <div class="col-sm-6 col-md-4 col-lg-3 mb-3">
+                                                <div class="card shadow-sm collectors_card border-0 d-block bg_transparent">
+                                                    <div class="card-header border-0 p-0 bg_transparent collectors_card_header position-relative">
+                                                        @if (auction.FirstOrDefault().NFTData.NFT.FileContent != null)
+                                                        {
+                                                            <img src="data:image/gif;base64,@System.Convert.ToBase64String(auction.FirstOrDefault().NFTData.NFT.FileContent)" class="h-100 w-100 size_cover" alt="user">
+                                                        }
+                                                        else
+                                                        {
+                                                            <img src="./img/bitcoin.png" class="h-100 w-100 size_cover" alt="bitcoin">
+                                                        }
+                                                        <div class="collectors_card_header_content p-2">
+                                                            <div class="d-flex justify-content-between w-100 align-items-center">
+                                                                <button class="btn bg_teal text-white btn-sm text-uppercase invisible">
+                                                                    purchasing !
+                                                                </button>
+                                                                <button class="btn d-flex justify-content-center align-items-center btn-light border rounded-circle w_h_40" @onclick="() => OnLikeNFT(auction.FirstOrDefault().NFTDataId, auction.FirstOrDefault().NFTData.NFT.UserProfile.UserProfileHeaderId)">
+                                                                    <i class="fas fa-heart text-dark btn-sm    "></i>
+                                                                </button>
+
+                                                            </div>
+
+                                                            <div class="bit_button bottom_0">
+                                                                <button class="btn btn-primary w-100 border rounded-pill mb-2" @onclick="() => OnPlaceBid(auction.FirstOrDefault().Id)">
+                                                                    Place a bid
+                                                                </button>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    <div class="card-body">
+                                                        <div class="d-flex justify-content-between mb-2">
+                                                            <span>
+                                                                @auction.FirstOrDefault().NFTData.NFT.Title
+                                                            </span>
+                                                            <span class="font_size_14 font-weight-bold border_text_45 d-inline-block px-1 rounded-lg  text_45">
+                                                                @(Math.Round(auction.FirstOrDefault().CurrentBidPrice / Startup.CoinPriceDict["ETH"], 8, MidpointRounding.AwayFromZero).ToString().TrimEnd('0') + " ETH")
+                                                            </span>
+                                                        </div>
+                                                        <div class="d-flex justify-content-between">
+                                                            <div class="stock_user stock_user_img d-flex align-items-center">
+                                                                @if (auction.FirstOrDefault().NFTData.NFT.UserProfile.UserProfileHeader.UserPhoto != null)
+                                                                {
+                                                                    <img src="data:image/gif;base64,@System.Convert.ToBase64String(auction.FirstOrDefault().NFTData.NFT.UserProfile.UserProfileHeader.UserPhoto)" alt="user">
+                                                                }
+                                                                else
+                                                                {
+                                                                    <img src="images/home/user.png" class="w_h_40" alt="user">
+                                                                }
+                                                            </div>
+                                                            <span>
+                                                                @auction.FirstOrDefault().NFTData.UniqueNumberOfMintedNFT in @auction.FirstOrDefault().NFTData.NFT.TotalNumberOfMintedNFT
+                                                            </span>
+                                                        </div>
+
+                                                    </div>
+                                                    <div class="card-footer bg_transparent">
+                                                        <div class="d-flex justify-content-between mb-2 font_size_12">
+                                                            @*<div class="d-flex ">
+                                                                    <span>Highest bid</span>
+                                                                    <span>
+                                                                        @(auction.FirstOrDefault().NFTData.FiatStartPrice / Startup.CoinPriceDict["ETH"]) ETH
+                                                                    </span>
+
+                                                                </div>
+                                                                <span class="ml-auto">
+                                                                    New bid 🔥
+                                                                </span>*@
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        }
+                                    }
+                                    else if (selectedFilterOption == "Most Favorited")
+                                    {
+                                        @foreach (var auction in AuctionMostNFTFavoritesList)
+                                        {
+                                            <div class="col-sm-6 col-md-4 col-lg-3 mb-3">
+                                                <div class="card shadow-sm collectors_card border-0 d-block bg_transparent">
+                                                    <div class="card-header border-0 p-0 bg_transparent collectors_card_header position-relative">
+                                                        @if (auction.FirstOrDefault().NFTData.NFT.FileContent != null)
+                                                        {
+                                                            <img src="data:image/gif;base64,@System.Convert.ToBase64String(auction.FirstOrDefault().NFTData.NFT.FileContent)" class="h-100 w-100 size_cover" alt="user">
+                                                        }
+                                                        else
+                                                        {
+                                                            <img src="./img/bitcoin.png" class="h-100 w-100 size_cover" alt="bitcoin">
+                                                        }
+                                                        <div class="collectors_card_header_content p-2">
+                                                            <div class="d-flex justify-content-between w-100 align-items-center">
+                                                                <button class="btn bg_teal text-white btn-sm text-uppercase invisible">
+                                                                    purchasing !
+                                                                </button>
+                                                                <button class="btn d-flex justify-content-center align-items-center btn-light border rounded-circle w_h_40" @onclick="() => OnLikeNFT(auction.FirstOrDefault().NFTDataId, auction.FirstOrDefault().NFTData.NFT.UserProfile.UserProfileHeaderId)">
+                                                                    <i class="fas fa-heart text-dark btn-sm    "></i>
+                                                                </button>
+
+                                                            </div>
+
+                                                            <div class="bit_button bottom_0">
+                                                                <button class="btn btn-primary w-100 border rounded-pill mb-2" @onclick="() => OnPlaceBid(auction.FirstOrDefault().Id)">
+                                                                    Place a bid
+                                                                </button>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    <div class="card-body">
+                                                        <div class="d-flex justify-content-between mb-2">
+                                                            <span>
+                                                                @auction.FirstOrDefault().NFTData.NFT.Title
+                                                            </span>
+                                                            <span class="font_size_14 font-weight-bold border_text_45 d-inline-block px-1 rounded-lg  text_45">
+                                                                @(Math.Round(auction.FirstOrDefault().CurrentBidPrice / Startup.CoinPriceDict["ETH"], 8, MidpointRounding.AwayFromZero).ToString().TrimEnd('0') + " ETH")
+                                                            </span>
+                                                        </div>
+                                                        <div class="d-flex justify-content-between">
+                                                            <div class="stock_user stock_user_img d-flex align-items-center">
+                                                                @if (auction.FirstOrDefault().NFTData.NFT.UserProfile.UserProfileHeader.UserPhoto != null)
+                                                                {
+                                                                    <img src="data:image/gif;base64,@System.Convert.ToBase64String(auction.FirstOrDefault().NFTData.NFT.UserProfile.UserProfileHeader.UserPhoto)" alt="user">
+                                                                }
+                                                                else
+                                                                {
+                                                                    <img src="images/home/user.png" class="w_h_40" alt="user">
+                                                                }
+                                                            </div>
+                                                            <span>
+                                                                @auction.FirstOrDefault().NFTData.UniqueNumberOfMintedNFT in @auction.FirstOrDefault().NFTData.NFT.TotalNumberOfMintedNFT
+                                                            </span>
+                                                        </div>
+
+                                                    </div>
+                                                    <div class="card-footer bg_transparent">
+                                                        <div class="d-flex justify-content-between mb-2 font_size_12">
+                                                            @*<div class="d-flex ">
+                                                                    <span>Highest bid</span>
+                                                                    <span>
+                                                                        @(auction.FirstOrDefault().NFTData.FiatStartPrice / Startup.CoinPriceDict["ETH"]) ETH
+                                                                    </span>
+
+                                                                </div>
+                                                                <span class="ml-auto">
+                                                                    New bid 🔥
+                                                                </span>*@
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        }
+                                    }
+                                    else if (selectedFilterOption == "Most Likes")
+                                    {
+                                        @foreach (var auction in AuctionMostNFTLikesList)
+                                        {
+                                            <div class="col-sm-6 col-md-4 col-lg-3 mb-3">
+                                                <div class="card shadow-sm collectors_card border-0 d-block bg_transparent">
+                                                    <div class="card-header border-0 p-0 bg_transparent collectors_card_header position-relative">
+                                                        @if (auction.FirstOrDefault().NFTData.NFT.FileContent != null)
+                                                        {
+                                                            <img src="data:image/gif;base64,@System.Convert.ToBase64String(auction.FirstOrDefault().NFTData.NFT.FileContent)" class="h-100 w-100 size_cover" alt="user">
+                                                        }
+                                                        else
+                                                        {
+                                                            <img src="./img/bitcoin.png" class="h-100 w-100 size_cover" alt="bitcoin">
+                                                        }
+                                                        <div class="collectors_card_header_content p-2">
+                                                            <div class="d-flex justify-content-between w-100 align-items-center">
+                                                                <button class="btn bg_teal text-white btn-sm text-uppercase invisible">
+                                                                    purchasing !
+                                                                </button>
+                                                                <button class="btn d-flex justify-content-center align-items-center btn-light border rounded-circle w_h_40" @onclick="() => OnLikeNFT(auction.FirstOrDefault().NFTDataId, auction.FirstOrDefault().NFTData.NFT.UserProfile.UserProfileHeaderId)">
+                                                                    <i class="fas fa-heart text-dark btn-sm    "></i>
+                                                                </button>
+
+                                                            </div>
+
+                                                            <div class="bit_button bottom_0">
+                                                                <button class="btn btn-primary w-100 border rounded-pill mb-2" @onclick="() => OnPlaceBid(auction.FirstOrDefault().Id)">
+                                                                    Place a bid
+                                                                </button>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    <div class="card-body">
+                                                        <div class="d-flex justify-content-between mb-2">
+                                                            <span>
+                                                                @auction.FirstOrDefault().NFTData.NFT.Title
+                                                            </span>
+                                                            <span class="font_size_14 font-weight-bold border_text_45 d-inline-block px-1 rounded-lg  text_45">
+                                                                @(Math.Round(auction.FirstOrDefault().CurrentBidPrice / Startup.CoinPriceDict["ETH"], 8, MidpointRounding.AwayFromZero).ToString().TrimEnd('0') + " ETH")
+                                                            </span>
+                                                        </div>
+                                                        <div class="d-flex justify-content-between">
+                                                            <div class="stock_user stock_user_img d-flex align-items-center">
+                                                                @if (auction.FirstOrDefault().NFTData.NFT.UserProfile.UserProfileHeader.UserPhoto != null)
+                                                                {
+                                                                    <img src="data:image/gif;base64,@System.Convert.ToBase64String(auction.FirstOrDefault().NFTData.NFT.UserProfile.UserProfileHeader.UserPhoto)" alt="user">
+                                                                }
+                                                                else
+                                                                {
+                                                                    <img src="images/home/user.png" class="w_h_40" alt="user">
+                                                                }
+                                                            </div>
+                                                            <span>
+                                                                @auction.FirstOrDefault().NFTData.UniqueNumberOfMintedNFT in @auction.FirstOrDefault().NFTData.NFT.TotalNumberOfMintedNFT
+                                                            </span>
+                                                        </div>
+
+                                                    </div>
+                                                    <div class="card-footer bg_transparent">
+                                                        <div class="d-flex justify-content-between mb-2 font_size_12">
+                                                            @*<div class="d-flex ">
+                                                                    <span>Highest bid</span>
+                                                                    <span>
+                                                                        @(auction.FirstOrDefault().NFTData.FiatStartPrice / Startup.CoinPriceDict["ETH"]) ETH
+                                                                    </span>
+
+                                                                </div>
+                                                                <span class="ml-auto">
+                                                                    New bid 🔥
+                                                                </span>*@
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        }
+                                    }
+                                    else
+                                    {
+                                        @foreach (var auction in filterAuctionList)
+                                        {
+                                            <div class="col-sm-6 col-md-4 col-lg-3 mb-3">
+                                                <div class="card shadow-sm collectors_card border-0 d-block bg_transparent">
+                                                    <div class="card-header border-0 p-0 bg_transparent collectors_card_header position-relative">
+                                                        @if (auction.NFTData.NFT.FileContent != null)
+                                                        {
+                                                            <img src="data:image/gif;base64,@System.Convert.ToBase64String(auction.NFTData.NFT.FileContent)" class="h-100 w-100 size_cover" alt="user">
+                                                        }
+                                                        else
+                                                        {
+                                                            <img src="./img/bitcoin.png" class="h-100 w-100 size_cover" alt="bitcoin">
+                                                        }
+                                                        <div class="collectors_card_header_content p-2">
+                                                            <div class="d-flex justify-content-between w-100 align-items-center">
+                                                                <button class="btn bg_teal text-white btn-sm text-uppercase invisible">
+                                                                    purchasing !
+                                                                </button>
+                                                                <button class="btn d-flex justify-content-center align-items-center btn-light border rounded-circle w_h_40" @onclick="() => OnLikeNFT(auction.NFTDataId, auction.NFTData.NFT.UserProfile.UserProfileHeaderId)">
+                                                                    <i class="fas fa-heart text-dark btn-sm    "></i>
+                                                                </button>
+
+                                                            </div>
+
+                                                            <div class="bit_button bottom_0">
+                                                                <button class="btn btn-primary w-100 border rounded-pill mb-2" @onclick="() => OnPlaceBid(auction.Id)">
+                                                                    Place a bid
+                                                                </button>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    <div class="card-body">
+                                                        <div class="d-flex justify-content-between mb-2">
+                                                            <span>
+                                                                @auction.NFTData.NFT.Title
+                                                            </span>
+                                                            <span class="font_size_14 font-weight-bold border_text_45 d-inline-block px-1 rounded-lg  text_45">
+                                                                @(Math.Round(auction.CurrentBidPrice / Startup.CoinPriceDict["ETH"], 8, MidpointRounding.AwayFromZero).ToString().TrimEnd('0') + " ETH")
+                                                            </span>
+                                                        </div>
+                                                        <div class="d-flex justify-content-between">
+                                                            <div class="stock_user stock_user_img d-flex align-items-center">
+                                                                @if (auction.NFTData.NFT.UserProfile.UserProfileHeader.UserPhoto != null)
+                                                                {
+                                                                    <img src="data:image/gif;base64,@System.Convert.ToBase64String(auction.NFTData.NFT.UserProfile.UserProfileHeader.UserPhoto)" alt="user">
+                                                                }
+                                                                else
+                                                                {
+                                                                    <img src="images/home/user.png" class="w_h_40" alt="user">
+                                                                }
+                                                            </div>
+                                                            <span>
+                                                                @auction.NFTData.UniqueNumberOfMintedNFT in @auction.NFTData.NFT.TotalNumberOfMintedNFT
+                                                            </span>
+                                                        </div>
+
+                                                    </div>
+                                                    <div class="card-footer bg_transparent">
+                                                        <div class="d-flex justify-content-between mb-2 font_size_12">
+                                                            @*<div class="d-flex ">
+                                                                    <span>Highest bid</span>
+                                                                    <span>
+                                                                        @(auction.CurrentBidPrice / Startup.CoinPriceDict["ETH"]) ETH
+                                                                    </span>
+
+                                                                </div>
+                                                                <span class="ml-auto">
+                                                                    New bid 🔥
+                                                                </span>*@
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        }
+                                    }
+                                </div>
+                                <div class="text-center my-3">
+                                    <button class="btn btn-muted px-3 py-1 btn-sm border rounded-pill">
+                                        Load more <span class="spinner-border spinner-border-sm mx-2"></span>
+                                    </button>
+                                </div>
+                            </div>
+                            @*<div id="Art" class=" tab-pane fade">
+                                    <br>
+                                    Art
+                                </div>
+                                <div id="Game" class=" tab-pane fade">
+                                    <br>
+                                    Game
+                                </div>
+                                <div id="Photography" class=" tab-pane fade">
+                                    <br>
+                                    Photography
+                                </div>
+                                <div id="Music" class=" tab-pane fade">
+                                    <br>
+                                    Music
+                                </div>
+                                <div id="Video" class=" tab-pane fade">
+                                    <br>
+                                    Video
+                                </div>*@
+                        </div>
+                    </div>
+                </div>
+                <div class="col-12">
+                    <br>
+                    <div class="border-bottom"></div>
+                </div>
+            </div>
+        </div>
+    </section>
+    <section class="mb-5 py-3 py-md-5 my-5">
+        <div class="container-xxl">
+            <div class="row">
+                <div class="col-md-6 py-3 py-md-5">
+                    <div class="col_wrapper py-5 text-center text-md-left ">
+                        <h6 class="text-uppercase text_7">Behind each NFT is a person with a story</h6>
+                        <h1>
+                            Earn Stars
+                        </h1>
+                        <h6 class="text_7">
+                            The Organization Rewards active Creators, Collectors and decsion makers.
+                        </h6>
+                        <br>
+                        <div class="btn_wrapper d-none d-md-block">
+                            <button class="btn btn-primary rounded-pill btn-sm mr-3" @onclick="@OnDao">
+                                Starboard DAO
+                            </button>
+                            <button class="btn btn-muted rounded-pill btn-sm border" @onclick="@OnDiscover">
+                                Discover $STARS
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6 h-auto ">
+                    <div class="col_wrapper h-100">
+                        <img src="./img/tennis_man.png" class="h-100 w-100 pb-5 d-inline-block" alt="tennis_man">
+                        <br>
+                        <div class="btn_wrapper text-center  d-md-none">
+                            <button class="btn btn-primary rounded-pill btn-sm mr-sm-3 w_100_less_sm mb-2" @onclick="@OnDao">
+                                Starboard DAO
+                            </button>
+                            <button class="btn btn-muted rounded-pill btn-sm border w_100_less_sm" @onclick="@OnDiscover">
+                                Discover $STARS
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+</main>
+
+@*Selected Address : @selected_account_addr
+    <br />
+    Selected Wallet Type: @open_wallet_type
+    <br />
+    Selected Wallet Date : @open_wallet_datetime
+    <br />*@
+
+@if (EthereumAvailable == true && !string.IsNullOrEmpty(SelectedAccount))
+{
+    <div class="card m-1">
+        <div class="card-body">
+            <div class="row">
+                <label class="col-sm-3 col-form-label-lg">Selected Account:</label>
+                <div class="col-sm-6">
+                    @SelectedAccount
+                    <small id="selectedAccountHelp" class="form-text text-muted">The selected account is bound to the host (ie Metamask) on change</small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card m-1">
+        <div class="card-body">
+            <div class="row">
+                <div class="col-sm-4">
+                    <button @onclick="@GetBlockHashAsync">Get Ether and NFT Amount</button>
+                </div>
+                <label class="col-sm-2 col-form-label-lg">Ether Account:</label>
+                <div class="col-sm-2">
+                    @EtherAmount
+                </div>
+                <label class="col-sm-2 col-form-label-lg">NFT Balance:</label>
+                <div class="col-sm-2">
+                    @NftAmount
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card m-1">
+        <div class="card-body">
+            <div class="row">
+                <label class="col-sm-3 col-form-label-lg">Authentication by signing:</label>
+                <div class="col-sm-6">
+                    <button @onclick="@AuthenticateAsync">Authenticate</button>
+                    <div>@AuthenticatedAccount</div>
+                    <small id="selectedAccountHelp" class="form-text text-muted">Creating an unique challenge per authentication request, allows us to recover and validate what account has signed the message</small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    @*<Erc20Transfer></Erc20Transfer>*@
+}
+else
+{
+    @*<div>
+            Please connect to Ethereum !
+        </div>*@
+}
+
+@code{
+
+    List<StarboardNFT.Models.Auction> filterAuctionList = new List<StarboardNFT.Models.Auction>();
+    List<IGrouping<Guid, Auction>> AuctionMostViewedList = new List<IGrouping<Guid, Auction>>();
+    List<IGrouping<Guid, Auction>> AuctionMostNFTFavoritesList = new List<IGrouping<Guid, Auction>>();
+    List<IGrouping<Guid, Auction>> AuctionMostNFTLikesList = new List<IGrouping<Guid, Auction>>();
+    List<StarboardNFT.Models.Auction> featuredUserAuctionList = new List<StarboardNFT.Models.Auction>();
+    List<StarboardNFT.Models.Auction> latestAuctionList = new List<StarboardNFT.Models.Auction>();
+
+    string EtherAmount { get; set; }
+    string NftAmount { get; set; }
+    bool EthereumAvailable { get; set; }
+    string SelectedAccount { get; set; }
+    string BlockHash { get; set; }
+
+    // cookie
+    string selected_account_addr { get; set; }
+    Guid currentUserProfileHeaderID { get; set; }
+    string open_wallet_datetime { get; set; }
+    string open_wallet_type { get; set; }
+
+    [Parameter]
+    public string Username { get; set; }
+
+    protected string AuthenticatedAccount { get; set; }
+    public decimal currentEthPrice { get; set; }
+
+    List<NFTData> randomRecentViewNFTList = new List<NFTData>();
+    List<NFT> featuredUserNFT = new List<NFT>();
+    List<NFTFavorites> followNFTList = new List<NFTFavorites>();
+    List<NFTData> featuredUserNFTData = new List<NFTData>();
+    List<IGrouping<Guid, Auction>> currentSellerList = new List<IGrouping<Guid, Auction>>();
+    List<RecentViewNFT> recentViewNFTList = new List<RecentViewNFT>();
+
+    public string leftTimeStr { get; set; }
+    TimeSpan leftTime = new TimeSpan(0, 0, 0, 0);
+    private static System.Timers.Timer leftTimer;
+
+    NFTData featuredNFTData = new NFTData();
+    StarboardNFT.Models.Auction auction = new StarboardNFT.Models.Auction();
+    UserProfileHeader objProfileHeaderSettings = new UserProfileHeader();
+
+    UserProfileHeader featuredProfile = new UserProfileHeader();
+
+    public NFT nft = new NFT();
+
+    public string selectedFilterOption { get; set; }
+    public bool isVerified { get; set; }
+    public decimal priceRange { get; set; }
+
+    public class EnumCategories
+    {
+        public NFT.Categories EnumValue { get; set; }
+        public string EnumName { get; set; }
+    }
+
+    // list for the dropdown
+    List<EnumCategories> categories { get; set; } = new List<EnumCategories>();
+    NFT.Categories selectedCategory;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var userName = Username;
+
+        if (userName == null)
+        {
+            ////do nothing let home page load
+            //featuredNFTData = await NftService.GetFeaturedNFTData();
+            //auction = await AuctionService.GetAuctionByFeaturedNFT();
+            //var ethPrice = Startup.CoinPriceDict["ETH"];
+
+            //if (auction != null)
+            //{
+
+            //    currentEthPrice = auction.CurrentBidPrice / ethPrice;
+            //    leftTime = auction.NFTData.SaleEndtDate.Value.Subtract(DateTime.UtcNow);
+            //}
+            //else
+            //    currentEthPrice = 0;
+
+            //featuredProfile = await ProfileService.GetFeaturedProfile();
+
+            //currentSellerList = await AuctionService.GetPopularSellers();
+
+            //StartTimer();
+        }
+        else
+        {
+            //Redirect here to PUBLIC profile page
+            UserProfileHeader profileInfo = new UserProfileHeader();
+            profileInfo = await Service.GetProfileHeaderByUsernameAsync(userName);
+
+            if (profileInfo != null)
+                NavigationManager.NavigateTo("profile/" + userName);
+            else
+                NavigationManager.NavigateTo("notfoundprofile");
+        }
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstTime)
+    {
+        if (firstTime)
+        {
+            _ethereumHostProvider.SelectedAccountChanged += HostProvider_SelectedAccountChanged;
+
+            EthereumAvailable = await _ethereumHostProvider.CheckProviderAvailabilityAsync();
+
+            currentUserProfileHeaderID = await localStore.GetItemAsync<Guid>("headerId");
+            objProfileHeaderSettings = await Service.GetProfileAsync(currentUserProfileHeaderID);
+
+            selected_account_addr = await localStore.GetItemAsync<string>("address");
+            if (string.IsNullOrEmpty(selected_account_addr))
+                randomRecentViewNFTList = await NftService.GetAllNFT();
+            else
+                recentViewNFTList = await AuctionService.GetRecentViewNFT(selected_account_addr);
+
+            if (recentViewNFTList.Count() == 0)
+                randomRecentViewNFTList = await NftService.GetAllNFT();
+
+            if (!string.IsNullOrEmpty(selected_account_addr))
+                followNFTList = await AuctionService.GetFollowNFT(selected_account_addr);
+
+            StateHasChanged();
+
+            await jsRuntime.InvokeVoidAsync("initializeIndexPageComponent");
+
+            latestAuctionList = await AuctionService.GetLatestAuctionList();
+            filterAuctionList = await AuctionService.GetRecentlyAddedAuctionSale("", isVerified, priceRange, 0);
+
+            selectedFilterOption = "Recently Added";
+
+            //do nothing let home page load
+            featuredNFTData = await NftService.GetFeaturedNFTData();
+            auction = await AuctionService.GetAuctionByFeaturedNFT();
+            var ethPrice = Startup.CoinPriceDict["ETH"];
+
+            if (auction != null)
+            {
+
+                currentEthPrice = auction.CurrentBidPrice / ethPrice;
+                leftTime = auction.NFTData.SaleEndtDate.Value.Subtract(DateTime.UtcNow);
+            }
+            else
+                currentEthPrice = 0;
+
+            featuredProfile = await ProfileService.GetFeaturedProfile();
+            if(featuredProfile != null)
+                featuredUserAuctionList = await AuctionService.GetAuctionByFeaturedUserHeaderID(featuredProfile.Id);
+
+            currentSellerList = await AuctionService.GetPopularSellers();
+
+            StateHasChanged();
+
+            StartTimer();
+        }
+    }
+
+    private async Task HostProvider_SelectedAccountChanged(string account)
+    {
+        SelectedAccount = account;
+
+        this.StateHasChanged();
+    }
+
+    protected async Task GetBlockHashAsync()
+    {
+        var web3 = await _ethereumHostProvider.GetWeb3Async();
+        var ether_amount = await _ethereumHostProvider.GetAccountBalance("0x5a4d185c590c5815a070ed62c278e665d137a0d9");
+        EtherAmount = ether_amount + "";
+
+        var nft_amount = await _ethereumHostProvider.GetERC721Balance("0x6EbeAf8e8E946F0716E6533A6f2cefc83f60e8Ab", "0x5a4d185c590c5815a070ed62c278e665d137a0d9");
+        NftAmount = nft_amount + "";
+
+        var block = await web3.Eth.Blocks.GetBlockWithTransactionsByNumber.SendRequestAsync(new HexBigInteger(1));
+        var balance = await web3.Eth.GetBalance.SendRequestAsync(SelectedAccount);
+
+        await jsRuntime.InvokeAsync<string>("console.log", "balance = " + ether_amount);
+        BlockHash = block.BlockHash;
+    }
+
+    public async Task AuthenticateAsync()
+    {
+        AuthenticatedAccount = await _nethereumAuthenticator.RequestNewChallengeSignatureAndRecoverAccountAsync();
+    }
+
+    public async Task OnPlaceBid(Guid nftAuctionId)
+    {
+        if (string.IsNullOrEmpty(selected_account_addr)) { NavigationManager.NavigateTo("signin", true); return; }
+
+        Auction auction = await AuctionService.GetAuctionById(nftAuctionId);
+
+        if (auction.IsAuctionOver) NavigationManager.NavigateTo("endedauction/" + nftAuctionId);
+        else NavigationManager.NavigateTo("placebid/" + nftAuctionId);
+
+        await AuctionService.SaveRecentViewNFT(auction.NFTData.NFT.UserProfile.Id, auction.NFTDataId, auction.Id);
+    }
+
+    private async Task OnPlaceBidByNFTData(Guid nftDataId)
+    {
+        if (string.IsNullOrEmpty(selected_account_addr)) { NavigationManager.NavigateTo("signin", true); return; }
+
+        Auction auction = await AuctionService.GetAuctionByNFTDataId(nftDataId);
+
+        if (auction.IsAuctionOver) NavigationManager.NavigateTo("endedauction/" + auction.Id);
+        else NavigationManager.NavigateTo("placebid/" + auction.Id);
+
+        await AuctionService.SaveRecentViewNFT(auction.NFTData.NFT.UserProfile.Id, auction.NFTDataId, auction.Id);
+    }
+
+    public void StartTimer()
+    {
+        leftTimer = new System.Timers.Timer(1000);
+        leftTimer.Elapsed += CountDownTimer;
+        leftTimer.Enabled = true;
+    }
+
+    public void CountDownTimer(Object source, System.Timers.ElapsedEventArgs e)
+    {
+        if (leftTime > TimeSpan.Zero)
+        {
+            //auction = Service.GetAuctionById(new Guid(auctionId)).Result;
+            leftTime = auction.NFTData.SaleEndtDate.Value.Subtract(DateTime.UtcNow);
+
+            InvokeAsync(() =>
+            {
+                StateHasChanged();
+            });
+        }
+        else
+        {
+            leftTimer.Enabled = false;
+            //NavigationManager.NavigateTo("endedauction/" + auction.Id);
+        }
+    }
+
+    public void OnFeaturedNFTBid()
+    {
+        if (string.IsNullOrEmpty(selected_account_addr)) { NavigationManager.NavigateTo("signin", true); return; }
+
+        if (auction != null)
+        {
+            if (auction.IsAuctionOver) NavigationManager.NavigateTo("endedauction/" + auction.Id);
+            else NavigationManager.NavigateTo("placebid/" + auction.Id);
+        }
+    }
+
+    public async Task OnChangeSellerType(ChangeEventArgs e)
+    {
+        string selectedString = e.Value.ToString();
+
+        currentSellerList = new List<IGrouping<Guid, Auction>>();
+        StateHasChanged();
+
+        if (selectedString == "Popular Sellers")
+        {
+            currentSellerList = await AuctionService.GetPopularSellers();
+        }
+        else if (selectedString == "New Sellers")
+        {
+            currentSellerList = await AuctionService.GetNewSellers();
+        }
+        else if (selectedString == "Recent Sellers")
+        {
+            currentSellerList = await AuctionService.GetRecentSellers();
+        }
+
+        StateHasChanged();
+    }
+
+    public async Task OnChangeDiscoverSearch(ChangeEventArgs e)
+    {
+        decimal numericValue;
+        bool isNumber = decimal.TryParse(e.Value.ToString(), out numericValue);
+
+        if (isNumber == true)
+            priceRange = decimal.Parse(e.Value.ToString());
+        else
+        {
+            if (e.Value.ToString() == "Non-verified")
+                isVerified = false;
+            else if (e.Value.ToString() == "Verified only")
+                isVerified = true;
+            else if (e.Value.ToString() == "Recently Added")
+                selectedFilterOption = "Recently Added";
+            else if (e.Value.ToString() == "Ending Soon")
+                selectedFilterOption = "Ending Soon";
+            else if (e.Value.ToString() == "Most Viewed")
+                selectedFilterOption = "Most Viewed";
+            else if (e.Value.ToString() == "Most Favorited")
+                selectedFilterOption = "Most Favorited";
+            else if (e.Value.ToString() == "Price: Low to High")
+                selectedFilterOption = "Price: Low to High";
+            else if (e.Value.ToString() == "Price: High to Low")
+                selectedFilterOption = "Price: High to Low";
+            else if (e.Value.ToString() == "Most Likes")
+                selectedFilterOption = "Most Likes";
+        }
+
+        if (selectedFilterOption == "Recently Added")
+        {
+            filterAuctionList = await AuctionService.GetRecentlyAddedAuctionSale("", isVerified, priceRange, selectedCategory);
+        }
+        else if (selectedFilterOption == "Ending Soon")
+        {
+            filterAuctionList = await AuctionService.GetEndingSoonAuctionSale("", isVerified, priceRange, selectedCategory);
+        }
+        else if (selectedFilterOption == "Most Viewed")
+        {
+            AuctionMostViewedList = await AuctionService.GetMostViewedAuctionSale("", isVerified, priceRange, selectedCategory);
+        }
+        else if (selectedFilterOption == "Most Favorited")
+        {
+            AuctionMostNFTFavoritesList = await AuctionService.GetMostFavoritesAuctionSale("", isVerified, priceRange, selectedCategory);
+        }
+        else if (selectedFilterOption == "Price: Low to High")
+        {
+            filterAuctionList = await AuctionService.GetLowToHighPriceAuctionSale("", isVerified, priceRange, selectedCategory);
+        }
+        else if (selectedFilterOption == "Price: High to Low")
+        {
+            filterAuctionList = await AuctionService.GetHighToLowPriceAuctionSale("", isVerified, priceRange, selectedCategory);
+        }
+        else if (selectedFilterOption == "Most Likes")
+        {
+            AuctionMostNFTLikesList = await AuctionService.GetMostLikesAuctionSale("", isVerified, priceRange, selectedCategory);
+        }
+
+        StateHasChanged();
+    }
+
+    public async Task ClearFilter()
+    {
+        selectedFilterOption = "Recently Added";
+        priceRange = 0;
+        isVerified = false;
+        selectedCategory = NFT.Categories.AllItems;
+
+        filterAuctionList = await AuctionService.GetRecentlyAddedAuctionSale("", isVerified, priceRange, selectedCategory);
+        await jsRuntime.InvokeVoidAsync("initializeIndexPageComponent");
+
+        StateHasChanged();
+    }
+
+    public async Task OnChangeDiscoverCategory(NFT.Categories sCategory)
+    {
+
+        selectedCategory = sCategory;
+        if (selectedFilterOption == "Recently Added")
+        {
+            filterAuctionList = await AuctionService.GetRecentlyAddedAuctionSale("", isVerified, priceRange, selectedCategory);
+        }
+        else if (selectedFilterOption == "Ending Soon")
+        {
+            filterAuctionList = await AuctionService.GetEndingSoonAuctionSale("", isVerified, priceRange, selectedCategory);
+        }
+        else if (selectedFilterOption == "Most Viewed")
+        {
+            AuctionMostViewedList = await AuctionService.GetMostViewedAuctionSale("", isVerified, priceRange, selectedCategory);
+        }
+        else if (selectedFilterOption == "Most Favorited")
+        {
+            AuctionMostNFTFavoritesList = await AuctionService.GetMostFavoritesAuctionSale("", isVerified, priceRange, selectedCategory);
+        }
+        else if (selectedFilterOption == "Price: Low to High")
+        {
+            filterAuctionList = await AuctionService.GetLowToHighPriceAuctionSale("", isVerified, priceRange, selectedCategory);
+        }
+        else if (selectedFilterOption == "Price: High to Low")
+        {
+            filterAuctionList = await AuctionService.GetHighToLowPriceAuctionSale("", isVerified, priceRange, selectedCategory);
+        }
+        else if (selectedFilterOption == "Most Likes")
+        {
+            AuctionMostNFTLikesList = await AuctionService.GetMostLikesAuctionSale("", isVerified, priceRange, selectedCategory);
+        }
+
+        StateHasChanged();
+    }
+
+    public void OnStartSearch()
+    {
+        NavigationManager.NavigateTo("search");
+    }
+
+    public void OnDiscover()
+    {
+        NavigationManager.NavigateTo("discover");
+    }
+
+    public void OnDao()
+    {
+        NavigationManager.NavigateTo("starboarddao");
+    }
+
+    private async Task OnLikeNFT(Guid NftDataId, Guid UserProfileHeaderId)
+    {
+        if (string.IsNullOrEmpty(selected_account_addr)) { NavigationManager.NavigateTo("signin", true); return; }
+        await ActivityService.SaveLikeNFTActivity(NftDataId, currentUserProfileHeaderID);
+    }
+
+    private async Task OnSellerItemClick(Guid userProfileHeaderID)
+    {
+        UserProfileHeader profileInfo = new UserProfileHeader();
+        profileInfo = await Service.GetProfileHeaderByIDAsync(userProfileHeaderID);
+
+        if (profileInfo != null)
+            NavigationManager.NavigateTo("profile/" + profileInfo.UserName);
+        else
+            NavigationManager.NavigateTo("notfoundprofile");
+    }
+
+    void ShowNotification(NotificationMessage message)
+    {
+        notificationService.Notify(message);
+    }
+
+    private async void OnFollowUser(Guid followingUserProfileHeaderId)
+    {
+        if (string.IsNullOrEmpty(selected_account_addr)) { NavigationManager.NavigateTo("signin", true); return; }
+
+        var userProfileHeader = await ProfileService.GetProfileHeaderByIDAsync(followingUserProfileHeaderId);
+
+        var result = await ProfileService.FollowUserProfile(followingUserProfileHeaderId, currentUserProfileHeaderID);
+        if(result == 1) ShowNotification(new NotificationMessage { Severity = NotificationSeverity.Info, Summary = "Following User", Detail = "Following " + userProfileHeader.UserName, Duration = 4000 });
+        if (result == 0) ShowNotification(new NotificationMessage { Severity = NotificationSeverity.Error, Summary = "Following User", Detail = "You are already Following " + userProfileHeader.UserName, Duration = 4000 });
+        if (result == 2) ShowNotification(new NotificationMessage { Severity = NotificationSeverity.Error, Summary = "Following User", Detail = "You can't follow yourself.", Duration = 4000 });
+
+        StateHasChanged();
+    }
+}

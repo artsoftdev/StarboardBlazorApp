@@ -1,0 +1,241 @@
+﻿@page "/bidhistory/{auctionId}"
+
+@using StarboardNFT.Data;
+@using StarboardNFT.Models;
+@using System.Threading;
+
+@inject NotificationService NotificationService
+@inject IJSRuntime jsRuntime;
+@inject Blazored.LocalStorage.ILocalStorageService localStore
+@inject StarboardNFT.Data.NotificationsService NotificationsService
+@using Microsoft.AspNetCore.SignalR.Client
+@inject NavigationManager NavigationManager
+@using Newtonsoft.Json;
+
+@inherits OwningComponentBase<AuctionService>
+
+<main>
+    <div class="container my-4">
+        <div class="row">
+            <h3>Bid History</h3>
+        </div>
+        <br />
+        <div class="row">
+            @if (auction.NFTData != null)
+            {
+                <img src="data:image/gif;base64,@System.Convert.ToBase64String(auction.NFTData.NFT.FileContent)" style="width: 30%; height: 30%; margin-left: auto; margin-right: auto;">
+                <RadzenLabel Text="@auction.NFTData.NFT.Title" Style="margin-left: 15px;" Component="CheckBox1" />
+            }
+        </div>
+        <br />
+        <div class="row">
+            Current bid: @auction.CurrentBidPrice USD
+        </div>
+        @if (AuctionBidList != null)
+        {
+            <div class="row">
+                <pre style="tab-size: 4;">Bids: @AuctionBidList.Count()      Bidders: @bidders      Time left: @leftTimeStr</pre>
+            </div>
+        }
+        <br />
+        <div class="row">
+            <div class="col-md-3 col-2">
+                <div class="minus_sign ">
+                    <a @onclick="OnBidPriceMinus" style="cursor: pointer;"><i class="fas fa-minus"></i></a>
+                </div>
+            </div>
+            <div class="col-md-6 col-8">
+                <div class="bid_amount_wrap text-center">
+                    <h2 class="bid_amount">@bidPrice</h2>
+                </div>
+            </div>
+            <div class="col-2 col-md-3">
+                <div class="plus_sign">
+                    <a @onclick="OnBidPricePlus" style="cursor: pointer;"><i class="fas fa-plus"></i></a>
+                </div>
+            </div>
+        </div>
+        <p class="text-center pb-3">Place a bid</p>
+        <div class="row align-items-center">
+            <div class="col-md-6 col-6 text-right">
+                <a @onclick="OnPlaceBid" style="cursor: pointer;" class="btn btn-primary rounded-0 px-md-4 @IsDisabled">Place a Bid</a>
+            </div>
+            <div class="col-md-6 col-6">
+                <a href="#" class="btn btn_buy_now rounded-0 px-md-4">Buy Now</a>
+            </div>
+        </div>
+        <div class="row">
+            <RadzenGrid style="margin-top: 100px; margin-left: 25px; margin-right: 25px; color: #000000;" PageSize="5" AllowPaging="true" AllowSorting="true" Data="@AuctionBidList" TItem="AuctionBid">
+                <Columns>
+                    <RadzenGridColumn TItem="AuctionBid" Property="BidUserId" Title="Bidder" />
+                    <RadzenGridColumn TItem="AuctionBid" Property="BidAmount" Title="Bid Amount" />
+                </Columns>
+            </RadzenGrid>
+        </div>
+    </div>
+</main>
+
+@code {
+    [Parameter]
+    public string auctionId { get; set; }
+
+    public string IsDisabled { get; set; }
+
+    public int bidders;
+    IEnumerable<AuctionBid> AuctionBidList;
+
+    AuctionBidQueue auctionBid = new AuctionBidQueue();
+    StarboardNFT.Models.Auction auction = new StarboardNFT.Models.Auction();
+    private HubConnection hubConnection;
+
+    decimal bidPrice = 0;
+    TimeSpan leftTime = new TimeSpan(1, 12, 23, 62);
+    public string leftTimeStr { get; set; }
+    private static System.Timers.Timer leftTimer;
+
+    protected async override Task OnInitializedAsync()
+    {
+        auction = await Service.GetAuctionById(new Guid(auctionId));
+
+        bidPrice = auction.CurrentBidPrice + auction.IncrementAmount;
+        StateHasChanged();
+    }
+
+    protected async override Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            var profileheader_Id = await localStore.GetItemAsync<Guid>("headerId");
+            string userId = profileheader_Id.ToString();
+
+            if (auction.CurrentWinningUserId == profileheader_Id)
+                bidPrice = auction.MaxBidPrice + auction.IncrementAmount;
+
+            await jsRuntime.InvokeAsync<string>("console.log", auctionId);
+            AuctionBidList = Service.GetBidListByAuctionId(new Guid(auctionId));
+            bidders = AuctionBidList.Select(x => x.BidUserId).Distinct().Count();
+
+            StateHasChanged();
+
+            StartTimer();
+
+            hubConnection = new HubConnectionBuilder().WithUrl(NavigationManager.ToAbsoluteUri("/notificationHub?userId=" + userId)).Build();
+
+            hubConnection.On<string>("UpdateBidPrice", (auctionString) =>
+            {
+                StarboardNFT.Models.Auction updateAuction = new StarboardNFT.Models.Auction();
+                updateAuction = JsonConvert.DeserializeObject<StarboardNFT.Models.Auction>(auctionString);
+
+                if (updateAuction.Id != auction.Id)
+                {
+                    return;
+                }
+
+                auction = updateAuction;
+
+                bidPrice = auction.CurrentBidPrice + auction.IncrementAmount;
+
+                if (auction.CurrentWinningUserId == profileheader_Id)
+                    bidPrice = auction.MaxBidPrice + auction.IncrementAmount;
+                //auction = updatedAuction;
+
+                IsDisabled = "enableds";
+
+                StateHasChanged();
+            });
+
+            hubConnection.On<string>("UpdateAuctionBidList", (auctionString) =>
+            {
+                StarboardNFT.Models.Auction updateAuction = new StarboardNFT.Models.Auction();
+                AuctionBidList = JsonConvert.DeserializeObject<IEnumerable<AuctionBid>>(auctionString);
+
+                //bidCount = AuctionBidList.Count();
+
+                StateHasChanged();
+            });
+
+            await hubConnection.StartAsync();
+        }
+    }
+
+    private void OnBidPricePlus()
+    {
+        bidPrice = bidPrice + auction.IncrementAmount;
+    }
+
+    private void OnBidPriceMinus()
+    {
+        if (bidPrice > auction.MaxBidPrice + auction.IncrementAmount)
+        {
+            bidPrice = bidPrice - auction.IncrementAmount;
+        }
+        else
+        {
+            ShowNotification(new NotificationMessage { Severity = NotificationSeverity.Error, Summary = "Invalid Price", Detail = "New Bid Price should be higher than Current Bid!", Duration = 4000 });
+        }
+    }
+
+    async Task OnPlaceBid()
+    {
+        var profileheader_Id = await localStore.GetItemAsync<Guid>("headerId");
+
+        if (auction.NFTData.NFT.UserProfile.UserProfileHeaderId == profileheader_Id)
+        {
+            ShowNotification(new NotificationMessage { Severity = NotificationSeverity.Error, Summary = "Can't place a bid", Detail = "Owners are not allowed to place a bid for their own auctions.", Duration = 4000 });
+            return;
+        }
+
+        auction = await Service.GetAuctionById(new Guid(auctionId));
+
+        if (auction.IsAuctionOver == true)
+        {
+            ShowNotification(new NotificationMessage { Severity = NotificationSeverity.Error, Summary = "Auction is over", Detail = "Auction has been closed.", Duration = 4000 });
+            return;
+        }
+
+        auctionBid.AuctionId = new Guid(auctionId);
+        auctionBid.BidUserId = profileheader_Id;
+
+        auctionBid.MaxBidAmount = bidPrice;
+        auctionBid.BidAmount = bidPrice;
+
+        var ethPrice = Startup.CoinPriceDict["ETH"];
+        auctionBid.EthMaxBidAmount = auctionBid.MaxBidAmount / ethPrice;
+        auctionBid.FiatMaxBidAmount = auctionBid.MaxBidAmount;
+        auctionBid.EthBidAmount = auctionBid.BidAmount / ethPrice;
+        auctionBid.FiatBidAmount = auctionBid.BidAmount;
+
+        IsDisabled = "disabled";
+        StateHasChanged();
+
+        bool result = await Service.OnPlaceBid(auctionBid);
+    }
+
+    void ShowNotification(NotificationMessage message)
+    {
+        NotificationService.Notify(message);
+    }
+
+    public void StartTimer() {
+        leftTime = auction.NFTData.SaleEndtDate.Value.Subtract(DateTime.UtcNow);
+
+        leftTimer = new System.Timers.Timer(1000);
+        leftTimer.Elapsed += CountDownTimer;
+        leftTimer.Enabled = true;
+    }
+
+    public void CountDownTimer(Object source, System.Timers.ElapsedEventArgs e) {
+        if (leftTime > TimeSpan.Zero)
+        {
+            leftTime = auction.NFTData.SaleEndtDate.Value.Subtract(DateTime.UtcNow);
+            leftTimeStr = leftTime.ToString(@"dd\.hh\:mm\:ss");
+            InvokeAsync(() =>
+            {
+                StateHasChanged();
+            });
+        }
+        else {
+            leftTimer.Enabled = false;
+        }
+    }
+}

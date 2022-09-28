@@ -1,0 +1,195 @@
+﻿@page "/profilesetting"
+
+@using StarboardNFT.Models;
+@using StarboardNFT.Data;
+@using System.IO
+@using System.Text
+
+@inject ApplicationDbContext dbContext;
+@inject DialogService DialogService;
+@inject NavigationManager NavigationManager;
+@inject Blazored.LocalStorage.ILocalStorageService localStore;
+@inject IJSRuntime jsRuntime;
+
+@inherits OwningComponentBase<ProfileService>
+
+<h3>Profile Settings</h3>
+
+<div style="margin-left: 5%; width: 70%; ">
+    <div Data="@objProfileHeaderSettings">
+        <div>
+            <div class="row" style="margin-top: 2rem">
+                <div class="col-md-6">
+                    <h5 style="margin-top: .2rem; margin-right: 0.5rem; display: inline;">Email Address</h5>
+                    <RadzenTextBox Placeholder="email" @bind-Value=@objProfileHeaderSettings.Email />
+                </div>
+                <div class="col-md-6">
+                    <h5 style="margin-top: .2rem; margin-right: 2rem; display: inline;">User Name</h5>
+                    <RadzenTextBox Placeholder="username" @bind-Value=@objProfileHeaderSettings.UserName />
+                </div>
+            </div>
+            <div class="row" style="margin-top: 2rem;">
+                <div class="col-lg-6">
+                    <h5 style="margin-top: .2rem; margin-right: 2rem; display: inline;">User Photo</h5>
+                    <InputFile OnChange="@OnChangeUserPhoto" name="image_uploader" accept=".png,.jpg,.gif" id="image_uploader" />
+                </div>
+                
+                <div class="col-lg-6">
+                    <h5 style="margin-top: .2rem; margin-right: 1.5rem; display: inline;">User Banner</h5>
+                    <InputFile OnChange="@OnChangeUserBanner" name="image_uploader" accept=".png,.jpg,.gif" />
+                </div>
+                
+            </div>
+            <div class="row" style="margin-top: 2rem">
+                <div class="col-md-6">
+                    @*<h5 style="margin-top: .2rem; margin-right: 1.5rem; margin-left: 1rem; display: inline;">Preview</h5>*@
+                    <div>
+                        @if (@objProfileHeaderSettings.UserPhoto != null)
+                        {
+                            <img src="data:image/gif;base64,@System.Convert.ToBase64String(@objProfileHeaderSettings.UserPhoto)" height="100" width="100" alt="user">
+                        }
+                        else
+                        {
+                            <img src="images/home/user.png" height="100" width="100" alt="user">
+                        }
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    @*<h5 style="margin-top: .2rem; margin-right: 1.5rem; margin-left: 1rem; display: inline;">Preview</h5>*@
+                    <div>
+                        @if (@objProfileHeaderSettings.UserBanner != null)
+                        {
+                            <img src="data:image/gif;base64,@System.Convert.ToBase64String(@objProfileHeaderSettings.UserBanner)" class="w-100 img_cover" height="100" width="100" alt="bg_rect">
+                        }
+                        else
+                        {
+                            <img src="images/home/bg_rect.png" height="100" width="100" class="w-100 img_cover" alt="user">
+                        }
+                    </div>
+                </div>
+            </div>
+            <div class="row" style="margin-top: 2rem">
+                <div class="col-md-6">
+                    <h5 style="margin-top: .2rem; margin-right: 1.5rem; display: inline;">User Overview</h5>
+                    <RadzenTextArea @bind-Value="@objProfileHeaderSettings.UserOverview" />
+                </div>
+                <div class="col-md-6">
+                    <h5 style="margin-top: .2rem; margin-right: 1.5rem; display: inline;">User Skills</h5>
+                    <RadzenTextArea @bind-Value="@objProfileHeaderSettings.UserSkills" />
+                </div>
+                </div>
+                <div class="row" style="margin-top: 2rem">
+                    <div class="col-md-4">
+                        <RadzenCheckBox @bind-Value=@objProfileHeaderSettings.SubscribedNewsletter TValue="bool" />
+                        <h5 style="margin-right: 1.5rem; margin-left: 1rem; display:inline;">Subscribe</h5>
+                    </div>
+                    <div class="col-md-4">
+                        <RadzenCheckBox @bind-Value=@objProfileHeaderSettings.EmailNotification TValue="bool" />
+                        <h5 style="margin-right: 1.5rem; margin-left: 1rem; display:inline;">Email Notification</h5>
+                    </div>
+                    <div class="col-md-4">
+                        <RadzenCheckBox @bind-Value=@objProfileHeaderSettings.TermsAgree TValue="bool" />
+                        <h5 style="margin-right: 1.5rem; margin-left: 1rem; display:inline;">Terms Agreement</h5>
+                    </div>
+                </div>
+                <div class="row" style="margin-top: 2rem">
+
+                    <h5 style="margin-top: 2rem"></h5>
+
+                    <RadzenButton Click="(() => OnSaveProfileSetting(objProfileHeaderSettings))" Text="Save"></RadzenButton>
+                </div>
+            </div>
+        </div>
+</div>
+
+@code {
+
+    UserProfile objProfileSettings = new UserProfile();
+    UserProfileHeader objProfileHeaderSettings = new UserProfileHeader();
+    string ethAddress = "";
+
+    protected async override Task OnInitializedAsync()
+    {
+        ethAddress = await localStore.GetItemAsync<string>("address");
+
+        var profileHeaderId = objProfileSettings.UserProfileHeaderId;
+
+        if (profileHeaderId == Guid.Empty)
+        {
+            var profileheader_Id = await localStore.GetItemAsync<string>("headerId");
+            if (!string.IsNullOrEmpty(profileheader_Id))
+                profileHeaderId = new Guid(profileheader_Id);
+        }
+
+        objProfileHeaderSettings = await Service.GetProfileAsync(profileHeaderId);
+        StateHasChanged();
+    }
+
+    async Task OnSaveProfileSetting(UserProfileHeader dProfileSettings)
+    {
+        var profileSettingSave = await Service.SaveProfileAsync(dProfileSettings);
+
+        if (profileSettingSave != Guid.Empty)
+        {
+            await jsRuntime.InvokeVoidAsync("alert", "Profile Saved...");
+            await localStore.SetItemAsync("headerId", profileSettingSave);
+        }
+        else
+        {
+            await jsRuntime.InvokeVoidAsync("alert", "Error! Profile did not save.");
+        }
+    }
+
+    async Task OnLinkWallet()
+    {
+        var result = await DialogService.Confirm("Do you want to link into old wallet? [Aaron Finish these]", "MyTitle", new ConfirmOptions() { OkButtonText = "Yes", CancelButtonText = "No" });
+        HideInDialog();
+        if (result == true)
+        {
+            await OnSignOutClick();
+        }
+    }
+
+    void Open(string title, Type type, Dictionary<string, object> parameters, DialogOptions options)
+    {
+        jsRuntime.InvokeAsync<string>("console.log", "open");
+    }
+
+    void Close(dynamic result)
+    {
+        if (result == "yes")
+            jsRuntime.InvokeAsync<string>("console.log", "close");
+    }
+
+    void HideInDialog()
+    {
+        DialogService.Close();
+    }
+
+    private async Task OnSignOutClick()
+    {
+        await localStore.RemoveItemAsync("address");
+        await localStore.RemoveItemAsync("ope_wallet_type");
+        await localStore.RemoveItemAsync("open_wallet_date");
+
+        NavigationManager.NavigateTo("signin", true);
+    }
+
+    private async Task OnChangeUserPhoto(InputFileChangeEventArgs e)
+    {
+        MemoryStream ms = new MemoryStream();
+
+        long maxAllowedSize = 40000000;
+        await e.File.OpenReadStream(maxAllowedSize).CopyToAsync(ms);
+        objProfileHeaderSettings.UserPhoto = ms.ToArray();
+    }
+
+    private async Task OnChangeUserBanner(InputFileChangeEventArgs e)
+    {
+        MemoryStream ms = new MemoryStream();
+
+        long maxAllowedSize = 40000000;
+        await e.File.OpenReadStream(maxAllowedSize).CopyToAsync(ms);
+        objProfileHeaderSettings.UserBanner = ms.ToArray();
+    }
+}

@@ -1,0 +1,286 @@
+﻿@page "/portfolio"
+
+
+@using StarboardNFT.Data;
+@using StarboardNFT.Models;
+
+@inject NavigationManager NavigationManager;
+@inject IJSRuntime jsRuntime;
+@inject ILocalStorageService localStore;
+@inject DialogService DialogService;
+@inject NFTService nftService;
+
+@inherits OwningComponentBase<ProfileService>
+
+<main>
+    <section class="standard__marketplace mt-5">
+        <div class="container mb-3 mb-lg-4">
+            <div class="row">
+                <div class="col-12">
+                    <div class="col__wrapper">
+                        <form action=""
+                              class="d-flex justify-content-center align-items-center flex-wrap border border_50 border-left-0 border-right-0">
+                            <div class="form-group my-3 my-lg-4 d-flex align-items-center bg_darkblue pl-3 py-1 border border_50">
+                                <i class="fas fa-search  me-2"></i>
+                                <input type="search"
+                                       class="form-control bg_transparent rounded-0 border-0 outline-0 shadow-0 focus_off my">
+                            </div>
+                            <div class="form-group my-3 rounded-0  py-1 border border_50 bg_darkblue ml-2"
+                                 style="width:150px;">
+                                <select class="form-control w_100_less_sm" name="" @onchange="@OnChangeCategory">
+                                    @foreach (var category in categories)
+                                    {
+                                        <option value="@category.EnumValue">@category.EnumName</option>
+                                    }
+                                </select>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="container">
+            <div class="row">
+                <div class="col-12">
+                    <div class="col__wrapper mb-4">
+                        <div class="d-flex w-100 align-items-center justify-content-between flex-wrap">
+                            <stron>
+                                🎉 @nftdata.Count() NFTs in Portfolio
+                            </stron>
+                            <button class="btn bg_darkblue_50">
+                                Filters Result
+                            </button>
+
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            @if (nftdata == null)
+            {
+                <!-- Show this if the NFTData has not been loaded yet... -->
+                <p><em>Loading...</em></p>
+            }
+            else
+            {
+            <div class="row">
+                @foreach (var nftData in nftdata)
+                {
+                    <div class="col-md-6 col-lg-4 mb-3">
+                        <div class="col__wrapper">
+                            <div class="card bg_transparent rounded-0 border">
+                                <img class="card-img-top card__img" src="data:image/gif;base64,@System.Convert.ToBase64String(nftData.NFT.FileContent)" alt="">
+                                <div class="card-body">
+                                    <h4 class="card-title">@nftData.NFT.Title</h4>
+                                    <div class="d-flex justify-content-between">
+                                        @if (nftData.SaleStartDate == null)
+                                        {
+                                            <button class="btn px-4 rounded-pill btn-primary font_size_18 text-nowrap  btn-sm dropdown_toggle_after_off" @onclick="(() => EditNFT(nftData.NFT.Id))">
+                                                Sell NFT
+                                            </button>
+                                        }
+                                        else if (nftData.SaleStartDate != null && nftData.SaleStartDate.Value < DateTime.UtcNow)
+                                        {
+                                            <button class="btn px-4 rounded-pill btn-primary font_size_18 text-nowrap  btn-sm dropdown_toggle_after_off" @onclick="(() => ViewNFT(nftData.NFT.Id))">
+                                                View NFT
+                                            </button>
+                                        }
+                                        else
+                                        {
+                                            <button class="btn px-4 rounded-pill btn-primary font_size_18 text-nowrap  btn-sm dropdown_toggle_after_off" @onclick="(() => EditNFT(nftData.NFT.Id))">
+                                                Edit NFT
+                                            </button>
+                                        }
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                }
+
+            </div>
+            }
+            <div class="row">
+                <div class="col-12 text-center my-3 my-md-5">
+                    <button class="btn bg_darkblue_50 px-md-5 py-2">
+                        Load More
+                    </button>
+                </div>
+            </div>
+        </div>
+    </section>
+</main>
+
+@code {
+    List<object> realNfts = new List<object>();
+    List<NFT> nfts = new List<NFT>();
+    List<NFTData> nftdata = new List<NFTData>();
+    UserProfileHeader objProfileHeaderSettings = new UserProfileHeader();
+    NFTData selectedNftData = new NFTData();
+    int index = 0;
+
+    DateTime localStartSaleDate;
+    DateTime localEndSaleDate;
+
+    string royaltyStr;
+
+    public class EnumCategories
+    {
+        public NFT.Categories EnumValue { get; set; }
+        public string EnumName { get; set; }
+    }
+
+    // list for the dropdown
+    List<EnumCategories> categories { get; set; } = new List<EnumCategories>();
+
+    protected async override Task OnInitializedAsync()
+    {
+        // load the list
+
+        foreach (NFT.Categories item in Enum.GetValues(typeof(NFT.Categories)))
+        {
+            categories.Add(new EnumCategories { EnumName = item.ToString(), EnumValue = item });
+        }
+
+        categories.RemoveAt(0);
+
+        StateHasChanged();
+    }
+
+    protected async override Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            var profileheader_Id = await localStore.GetItemAsync<Guid>("headerId");
+            objProfileHeaderSettings = await Service.GetProfileAsync(profileheader_Id);
+
+            nfts = await nftService.GetNFTsByUserName(objProfileHeaderSettings.UserName);
+            nftdata = await nftService.GetNFTDataByUserName(objProfileHeaderSettings.UserName);
+            await jsRuntime.InvokeVoidAsync("initialProfilePortfolioComponent");
+
+            StateHasChanged();
+        }
+    }
+
+    async Task ShowSelectedNFTDialog() => await DialogService.OpenAsync("NFT Dialog", ds =>
+    @<div>
+    <h3 Style="margin-bottom: 1rem">NFTData Information</h3>
+    <div class="row" style="margin-top: 2rem;">
+        <div class="col-md-6">
+            <h5 style="margin-top: .2rem; margin-right: 2rem; display: inline;">ETH Start Price : </h5>
+        </div>
+        <div class="col-md-6">
+            <RadzenLabel Text="@selectedNftData.FiatStartPrice.ToString()" Component="CheckBox1" />
+        </div>
+    </div>
+    <div class="row" style="margin-top: 2rem;">
+        <div class="col-md-6">
+            <h5 style="margin-top: .2rem; margin-right: 2rem; display: inline;">ETH Buyout Price : </h5>
+        </div>
+        <div class="col-md-6">
+            <RadzenLabel Text="@selectedNftData.FiatBuyOutPrice.ToString()" Component="CheckBox1" />
+        </div>
+    </div>
+    <div class="row" style="margin-top: 2rem;">
+        <div class="col-md-6">
+            <h5 style="margin-top: .2rem; margin-right: 2rem; display: inline;">Reserve Price : </h5>
+        </div>
+        <div class="col-md-6">
+            <RadzenLabel Text="@selectedNftData.FiatReservePrice.ToString()" Component="CheckBox1" />
+        </div>
+    </div>
+    <div class="row" style="margin-top: 2rem;">
+        <div class="col-md-6">
+            <h5 style="margin-top: .2rem; margin-right: 2rem; display: inline;">Royalty : </h5>
+        </div>
+        <div class="col-md-6">
+            <RadzenLabel Text="@royaltyStr" Component="CheckBox1" />
+        </div>
+    </div>
+    <div class="row" style="margin-top: 2rem;">
+        <div class="col-md-6">
+            <h5 style="margin-top: .2rem; margin-right: 2rem; display: inline;">Sale Start Date : </h5>
+        </div>
+        <div class="col-md-6">
+            <RadzenLabel Text="@localStartSaleDate.ToString()" Component="CheckBox1" />
+        </div>
+    </div>
+    <div class="row" style="margin-top: 2rem;">
+        <div class="col-md-6">
+            <h5 style="margin-top: .2rem; margin-right: 2rem; display: inline;">Sale End Date : </h5>
+        </div>
+        <div class="col-md-6">
+            <RadzenLabel Text="@localEndSaleDate.ToString()" Component="CheckBox1" />
+        </div>
+    </div>
+    <div class="row" style="margin-top: 2rem;">
+        <div class="col-md-6">
+            <h5 style="margin-top: .2rem; margin-right: 2rem; display: inline;">Tags : </h5>
+        </div>
+        <div class="col-md-6">
+            <RadzenLabel Text="@selectedNftData.Tags" Component="CheckBox1" />
+        </div>
+    </div>
+    <div class="row" style="margin-top: 20px;">
+        <div class="col-md-12">
+            <RadzenButton Text="Close" Click="() => ds.Close(false)" ButtonStyle="ButtonStyle.Secondary" Style="margin-bottom: 10px; width: 150px" />
+            <RadzenButton Text="Cancel Sale" Click="() => CancelSale(selectedNftData.NFTId)" Style="margin-bottom: 10px; width: 150px" />
+        </div>
+    </div>
+</div>);
+
+    async Task ViewNFT(Guid nftId)
+    {
+        selectedNftData = await nftService.GetNFTDatabyNFTId(nftId.ToString());
+
+        localStartSaleDate = ((DateTime)selectedNftData.SaleStartDate).ToLocalTime();
+        localEndSaleDate = ((DateTime)selectedNftData.SaleEndtDate).ToLocalTime();
+
+        royaltyStr = decimal.Round(selectedNftData.Royalty, 2, MidpointRounding.AwayFromZero).ToString() + "%";
+        await ShowSelectedNFTDialog();
+
+        StateHasChanged();
+    }
+
+    async Task EditNFT(Guid nftId)
+    {
+        NavigationManager.NavigateTo("nftdataupload/" + nftId);
+    }
+
+    async Task CancelSale(Guid nftId)
+    {
+        bool success = await nftService.CancelSale(nftId.ToString());
+        // Close the dialog
+        DialogService.Close();
+
+        nfts = await nftService.GetNFTsByUserName(objProfileHeaderSettings.UserName);
+        nftdata = await nftService.GetNFTDataByUserName(objProfileHeaderSettings.UserName);
+        StateHasChanged();
+    }
+
+    void Open(string title, Type type, Dictionary<string, object> parameters, DialogOptions options)
+    {
+        jsRuntime.InvokeAsync<string>("console.log", "open");
+    }
+
+    void Close(dynamic result)
+    {
+        jsRuntime.InvokeAsync<string>("console.log", "close");
+    }
+
+    void OnChangeCategory(ChangeEventArgs e)
+    {
+        string selectedCategory = e.Value.ToString();
+
+        //if (selectedCategory == "Art")
+        //    nft.Category = NFT.Categories.Art;
+        //else if (selectedCategory == "Game")
+        //    nft.Category = NFT.Categories.Game;
+        //else if (selectedCategory == "Photography")
+        //    nft.Category = NFT.Categories.Photography;
+        //else if (selectedCategory == "Music")
+        //    nft.Category = NFT.Categories.Music;
+        //else if (selectedCategory == "Video")
+        //    nft.Category = NFT.Categories.Video;
+    }
+}

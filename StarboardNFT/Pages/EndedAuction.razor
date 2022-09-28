@@ -1,0 +1,69 @@
+﻿@page "/endedauction/{auctionId}"
+
+@using StarboardNFT.Data;
+@using StarboardNFT.Models;
+
+@inject NavigationManager NavigationManager
+
+@inherits OwningComponentBase<AuctionService>
+
+<main>
+    <div class="container">
+        <div class="row">
+            <div class="col-6">
+                @if (auction.NFTData != null)
+                {
+                    <img src="data:image/gif;base64,@System.Convert.ToBase64String(auction.NFTData.NFT.FileContent)" class="w-100 h-auto">
+                    <RadzenLabel Text="@auction.NFTData.NFT.Title" Style="margin-left: 15px;" Component="CheckBox1" />
+                }
+            </div>
+            <div class="col-6 pl-5 pt-5">
+                <div class="row">
+                    @if (auction.NFTData != null)
+                    {
+                        <RadzenLabel Text="@("Ended Date : " + auction.NFTData.SaleEndtDate.ToString())" Style="margin-left: 15px;" Component="CheckBox1" />
+                    }
+                </div>
+                <div class="row">
+                    @if (auction.NFTData != null)
+                    {
+                    <p class="text-center">
+                        <RadzenLabel Text="@("Winning bid : " + auction.CurrentBidPrice.ToString())" Style="margin-left: 15px;" Component="CheckBox1" />
+                        [<a @onclick="OnBidHistory" style="cursor: pointer;">@bidCount bids</a>]
+                    </p>
+                    }
+                </div>
+                <div class="row">
+                    @if (auction.NFTData != null)
+                    {
+                        <RadzenLabel Text="@("Seller : " + auction.NFTData.NFT.UserProfile.UserProfileHeader.UserName)" Style="margin-left: 15px;" Component="CheckBox1" />
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+
+@code {
+    [Parameter]
+    public string auctionId { get; set; }
+    public int bidCount { get; set; }
+
+    IEnumerable<AuctionBid> AuctionBidList;
+    Auction auction = new Auction();
+
+    protected async override Task OnInitializedAsync()
+    {
+        auction = await Service.GetAuctionById(new Guid(auctionId));
+
+        AuctionBidList = Service.GetBidListByAuctionId(new Guid(auctionId));
+        bidCount = AuctionBidList.Count();
+
+        StateHasChanged();
+    }
+
+    private void OnBidHistory()
+    {
+        NavigationManager.NavigateTo("bidhistory/" + auction.Id);
+    }
+}

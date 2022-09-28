@@ -1,0 +1,9 @@
+{
+    "version": 3,
+    "mappings": "AAEA,AAEI,aAFS,CAET,iBAAiB,CAAA;EACb,KAAK,EAAE,KAAK,CAAA,UAAU;CACzB;;AAJL,AAKI,aALS,CAKT,cAAc,CAAA;EACV,KAAK,EAAE,OAAO;CACjB;;AAGL,AACI,YADQ,CACR,iBAAiB,CAAA;EACb,KAAK,EAAE,KAAK,CAAA,UAAU;CACzB",
+    "sources": [
+        "toggle.scss"
+    ],
+    "names": [],
+    "file": "toggle.css"
+}

@@ -1,0 +1,523 @@
+﻿@page "/profile/{username}"
+
+@using StarboardNFT.Models;
+@using StarboardNFT.Data;
+
+@inject ApplicationDbContext dbContext;
+
+@inject IJSRuntime jsRuntime;
+@inject Blazored.LocalStorage.ILocalStorageService localStore;
+@inject NFTService nftService;
+@inject NavigationManager NavigationManager;
+@inject AuctionService auctionService;
+@inject ActivityService activityService;
+@inject NotificationService notificationService;
+
+@inherits OwningComponentBase<ProfileService>
+
+<main>
+    <section class="bg_23 position-relative">
+        <div class="full__width position-relative" style="height: 250px">
+            @if (@objProfileHeaderSettings.UserBanner != null)
+            {
+                <img class="w-100 img_cover h-100" src="data:image/gif;base64,@System.Convert.ToBase64String(@objProfileHeaderSettings.UserBanner)" alt="circle_profile">
+            }
+            else
+            {
+                <img class="position-absolute top_0 left_0 w-100 h-100 size_object_top" src="/images/bg-03.jpg" alt="cover_later">
+            }
+        </div>
+    </section>
+
+    <section class="mb-3 mb-md-5">
+        <div class="container-xxl">
+            <div class="row">
+                <div class="col-md-4">
+                    <div class="col_wrapper">
+                        <div class="card border-0 shadow p-3 p-md-4 user_profile_card rounded_24">
+                            <div class="card-header bg_transparent border-0">
+                                <div class="user_profile">
+                                    <div>
+
+                                        @if (@objProfileHeaderSettings.UserPhoto != null)
+                                        {
+                                            <img class="d-block w_h_160 rounded-circle mx-auto" style="border-radius: 50%;" src="data:image/gif;base64,@System.Convert.ToBase64String(@objProfileHeaderSettings.UserPhoto)" alt="circle_profile">
+                                        }
+                                        else
+                                        {
+                                            <img class="d-block w_h_160 rounded-circle mx-auto" src="images/home/user.png" alt="circle_profile">
+                                        }
+                                    </div>
+                                    <br>
+
+                                    <h4>@objProfileHeaderSettings.UserName</h4>
+
+                                    <p class="text_7 font_size_12 font_family_poppins text-center">
+                                        @objProfileHeaderSettings.UserOverview
+                                    </p>
+
+                                    <a href="https://nft.starboard.org"
+                                       class="btn btn-muted focus_shadow_off border-0 text_23">
+                                        <i class="fas fa-globe    "></i> https://nft.starboard.org
+                                    </a>
+                                </div>
+                            </div>
+                            <div class="card-body px-0 border-bottom">
+                                <div class="btn_wrapper d-flex justify-content-center flex-wrap mt-3 mt-md-5">
+                                    @if (bFollow == true)
+                                    {
+                                        <button class="btn btn-primary rounded-pill mx-1" @onclick="@OnUnFollowUser">
+                                            UnFollow
+                                        </button>
+                                    }
+                                    else 
+                                    { 
+                                        <button class="btn btn-primary rounded-pill mx-1" @onclick="@OnFollowUser">
+                                            Follow
+                                        </button>
+                                    }
+                                </div>
+                                <div class="d-flex justify-content-center flex-wrap mt-3 mt-md-5">
+                                    <a href="#" class="btn btn-muted focus_shadow_off border-0 mx-1">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="18.203" height="15"
+                                             viewBox="0 0 18.203 15">
+                                            <g id="Icons_Twitter_Line" data-name="Icons/Twitter/Line"
+                                               transform="translate(-0.9 -2.5)">
+                                                <path id="Vector"
+                                                      d="M1.751,9.167A1.748,1.748,0,0,0,.332,11.93c1.216,1.7,3.421,3.07,7.1,3.07,5.7,0,10.283-4.649,9.642-10.141l.939-1.878a1.75,1.75,0,0,0-1.908-2.5L14.866.731a6.208,6.208,0,0,0-.96-.4A6.354,6.354,0,0,0,12.017,0,4.74,4.74,0,0,0,9.108.88,4.218,4.218,0,0,0,7.66,2.924a5.534,5.534,0,0,0-.231.958,8.421,8.421,0,0,1-1.336-.556A7.234,7.234,0,0,1,3.822,1.571a1.749,1.749,0,0,0-2.964.362A7.074,7.074,0,0,0,1,7.511,8.21,8.21,0,0,0,1.94,9.165Zm5.683,4.167c-3.219,0-4.884-1.166-5.745-2.372a.081.081,0,0,1,.067-.128A8.348,8.348,0,0,0,5.614,10.1a.082.082,0,0,0-.02-.149C2.831,9.017,1.26,5.082,2.376,2.622a.082.082,0,0,1,.14-.015A9.486,9.486,0,0,0,9,5.832a.085.085,0,0,0,.084-.1c-.1-.633-.471-4.067,2.934-4.067a4.566,4.566,0,0,1,2.468.8.087.087,0,0,0,.076.022l1.872-.375a.083.083,0,0,1,.091.119L15.363,4.558a.085.085,0,0,0-.008.052C16.169,9.183,12.424,13.333,7.433,13.333Z"
+                                                      transform="translate(0.9 2.5)" fill="#777e90"
+                                                      fill-rule="evenodd" />
+                                            </g>
+                                        </svg>
+                                    </a>
+                                    <a href="#" class="btn btn-muted focus_shadow_off border-0 mx-1">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="16.667" height="16.667"
+                                             viewBox="0 0 16.667 16.667">
+                                            <g id="Icons_Instagram_Line" data-name="Icons/Instagram/Line"
+                                               transform="translate(-1.667 -1.667)">
+                                                <path id="Vector"
+                                                      d="M11.667,1.667H5A3.333,3.333,0,0,0,1.667,5v6.667A3.333,3.333,0,0,0,5,15h6.667A3.333,3.333,0,0,0,15,11.667V5A3.333,3.333,0,0,0,11.667,1.667ZM5,0A5,5,0,0,0,0,5v6.667a5,5,0,0,0,5,5h6.667a5,5,0,0,0,5-5V5a5,5,0,0,0-5-5Z"
+                                                      transform="translate(1.667 1.667)" fill="#777e90"
+                                                      fill-rule="evenodd" />
+                                                <path id="Vector-2" data-name="Vector"
+                                                      d="M.833,1.667A.833.833,0,1,0,0,.833.833.833,0,0,0,.833,1.667Z"
+                                                      transform="translate(13.333 5)" fill="#777e90" />
+                                                <path id="Vector-3" data-name="Vector"
+                                                      d="M8.333,4.167A4.167,4.167,0,1,1,4.167,0,4.167,4.167,0,0,1,8.333,4.167Zm-1.667,0a2.5,2.5,0,1,1-2.5-2.5A2.5,2.5,0,0,1,6.667,4.167Z"
+                                                      transform="translate(5.833 5.833)" fill="#777e90"
+                                                      fill-rule="evenodd" />
+                                            </g>
+                                        </svg>
+                                    </a>
+                                    <a href="#" class="btn btn-muted focus_shadow_off border-0 mx-1">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="16.667" height="16.667"
+                                             viewBox="0 0 16.667 16.667">
+                                            <g id="Icons_Facebook_Line" data-name="Icons/Facebook/Line"
+                                               transform="translate(-1.667 -1.667)">
+                                                <path id="Vector"
+                                                      d="M8.333,15A6.667,6.667,0,1,0,1.667,8.333,6.667,6.667,0,0,0,8.333,15Zm0,1.667A8.333,8.333,0,1,0,0,8.333,8.333,8.333,0,0,0,8.333,16.667Z"
+                                                      transform="translate(1.667 1.667)" fill="#777e90"
+                                                      fill-rule="evenodd" />
+                                                <path id="Vector-2" data-name="Vector"
+                                                      d="M3.333,2.5a.833.833,0,0,1,.833-.833H5A.833.833,0,0,0,5,0H4.167a2.5,2.5,0,0,0-2.5,2.5V4.167H.833a.833.833,0,1,0,0,1.667h.833v5a.833.833,0,1,0,1.667,0v-5H5A.833.833,0,1,0,5,4.167H3.333Z"
+                                                      transform="translate(6.667 5.833)" fill="#777e90" />
+                                            </g>
+                                        </svg>
+                                    </a>
+                                </div>
+                            </div>
+                            <div class="card-footer pt-5 m-0 bg_transparent border-0">
+                                <p class="text-center p-0 m-0 font_size_12 font_family_poppins text_7">
+                                    Member since @objProfileHeaderSettings.CreateDateTimeUtc.ToLocalTime().GetDateTimeFormats('D')[1]
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-8 mt-3 mt-md-5">
+                    <div class="col_wrapper">
+                        <div class="nav_wrapper">
+                            <!-- Nav tabs -->
+                            <ul class="nav nav-tabs  border-0">
+                                <li class="nav-item">
+                                    <button class="btn border-0 btn-sm btn-muted nav-link btn_active_component rounded-pill px-3 py-1 active"
+                                            @onclick='() => ShowHideTab("onSaleTabActive")' data-toggle="tab" data-target="#on_sale">
+                                        On Sale
+                                    </button>
+                                </li>
+                                <li class="nav-item">
+                                    <button class="btn border-0 btn-sm btn-muted nav-link btn_active_component rounded-pill px-3 py-1"
+                                            @onclick='() => ShowHideTab("createdTabActive")' data-toggle="tab" data-target="#Created">
+                                        Created
+                                    </button>
+                                </li>
+                                <li class="nav-item">
+                                    <button class="btn border-0 btn-sm btn-muted nav-link btn_active_component rounded-pill px-3 py-1"
+                                            @onclick='() => ShowHideTab("followingTabActive")' data-toggle="tab" data-target="#Following">
+                                        Following
+                                    </button>
+                                </li>
+                            </ul>
+                        </div>
+
+                        <!-- Tab panes -->
+                        <!-- Tab panes -->
+                        <div class="tab-content my-3 my-md-5">
+                            <div class="@onSaleTabActive">
+                                <div class="row">
+                                    <RadzenDataList WrapItems="true" AllowPaging="false" Data="@onSaleNftDataAuctionSubList" TItem="Auction">
+                                        <Template Context="nftDataAuction">
+                                            <div class="col-md-6 col-lg-4 m-0 mb-3">
+                                                <div class="card shadow-sm collectors_card border-0 d-block">
+                                                    <div class="card-header border-0 p-0  bg_transparent collectors_card_header position-relative">
+                                                        <img src="data:image/gif;base64,@System.Convert.ToBase64String(nftDataAuction.NFTData.NFT.FileContent)" class="h-100 w-100 size_cover"
+                                                             alt="media_img">
+                                                        <div class="collectors_card_header_content p-2">
+                                                            <div class="d-flex justify-content-between w-100 align-items-center">
+                                                                @if (nftDataAuction.CurrentWinningUserId == selfProfileheader_Id)
+                                                                {
+                                                                    <button class="btn bg_teal text-white btn-sm text-uppercase">
+                                                                        Winning
+                                                                    </button>
+                                                                }
+                                                                else
+                                                                {
+                                                                    <button class="invisible"></button>
+                                                                }
+
+                                                                <button class="btn d-flex justify-content-center align-items-center btn-light border rounded-circle w_h_40" @onclick="() => OnAddLike(nftDataAuction.NFTDataId, nftDataAuction.NFTData.NFT.UserProfile.UserProfileHeaderId)">
+                                                                    <i class="fas fa-heart text-dark btn-sm    "></i>
+                                                                </button>
+
+                                                            </div>
+
+                                                            <div class="bit_button bottom_0">
+                                                                <button class="btn btn-primary w-100 border rounded-pill mb-2" @onclick="() => OnPlaceBid(nftDataAuction.Id)">
+                                                                    Place a bid
+                                                                </button>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    <div class="card-body">
+                                                        <div class="d-flex justify-content-between mb-2">
+                                                            <span>
+                                                                @nftDataAuction.NFTData.NFT.Title
+                                                            </span>
+                                                        </div>
+                                                        <div class="d-flex justify-content-between">
+                                                            <div class="stock_user stock_user_img d-flex align-items-center">
+                                                                @if (nftDataAuction.NFTData.NFT.UserProfile != null && nftDataAuction.NFTData.NFT.UserProfile.UserProfileHeader.UserPhoto != null)
+                                                                {
+                                                                    <img src="data:image/gif;base64,@System.Convert.ToBase64String(nftDataAuction.NFTData.NFT.UserProfile.UserProfileHeader.UserPhoto)" class="w_h_40 mr-2" alt="user">
+                                                                }
+                                                                else
+                                                                {
+                                                                    <img src="images/home/user.png" class="w_h_40 mr-2" alt="circle_profile">
+                                                                }
+                                                            </div>
+                                                            <span>
+                                                                @nftDataAuction.NFTData.UniqueNumberOfMintedNFT in @nftDataAuction.NFTData.NFT.TotalNumberOfMintedNFT
+                                                            </span>
+                                                        </div>
+
+                                                    </div>
+                                                    <div class="card-footer bg_transparent">
+                                                        <div class="d-flex justify-content-between mb-2 font_size_12">
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </Template>
+                                    </RadzenDataList>
+                                </div>
+                                <RadzenPager Count="count" PageSize="@pageSize" PageNumbersCount="10" PageChanged='args => PageChanged(args, "OnSale")' />
+                            </div>
+
+                            <div class="@createdTabActive">
+                                <div class="row">
+                                    <RadzenDataList WrapItems="true" AllowPaging="false" Data="@createdNftDataAuctionSubList" TItem="Auction">
+                                        <Template Context="nftDataAuction">
+                                            <div class="col-md-6 col-lg-4 m-0 mb-3">
+                                                <div class="card shadow-sm collectors_card border-0 d-block">
+                                                    <div class="card-header border-0 p-0  bg_transparent collectors_card_header position-relative">
+                                                        <img src="data:image/gif;base64,@System.Convert.ToBase64String(nftDataAuction.NFTData.NFT.FileContent)" class="h-100 w-100 size_cover"
+                                                             alt="media_img">
+                                                        <div class="collectors_card_header_content p-2">
+                                                            <div class="d-flex justify-content-between w-100 align-items-center">
+                                                                @if (nftDataAuction.CurrentWinningUserId == selfProfileheader_Id)
+                                                                {
+                                                                    <button class="btn bg_teal text-white btn-sm text-uppercase">
+                                                                        Winning
+                                                                    </button>
+                                                                }
+                                                                else
+                                                                {
+                                                                    <button class="invisible"></button>
+                                                                }
+                                                                <button class="btn d-flex justify-content-center align-items-center btn-light border rounded-circle w_h_40" @onclick="() => OnAddLike(nftDataAuction.NFTDataId, nftDataAuction.NFTData.NFT.UserProfile.UserProfileHeaderId)">
+                                                                    <i class="fas fa-heart text-dark btn-sm    "></i>
+                                                                </button>
+
+                                                            </div>
+
+                                                            <div class="bit_button bottom_0">
+                                                                <button class="btn btn-primary w-100 border rounded-pill mb-2" @onclick="() => OnPlaceBid(nftDataAuction.Id)">
+                                                                    Place a bid
+                                                                </button>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    <div class="card-body">
+                                                        <div class="d-flex justify-content-between mb-2">
+                                                            <span>
+                                                                @nftDataAuction.NFTData.NFT.Title
+                                                            </span>
+                                                        </div>
+                                                        <div class="d-flex justify-content-between">
+                                                            <div class="stock_user stock_user_img d-flex align-items-center">
+                                                                @if (nftDataAuction.NFTData.NFT.UserProfile != null && nftDataAuction.NFTData.NFT.UserProfile.UserProfileHeader.UserPhoto != null)
+                                                                {
+                                                                    <img src="data:image/gif;base64,@System.Convert.ToBase64String(nftDataAuction.NFTData.NFT.UserProfile.UserProfileHeader.UserPhoto)" class="w_h_40 mr-2" alt="user">
+                                                                }
+                                                                else
+                                                                {
+                                                                    <img src="images/home/user.png" class="w_h_40 mr-2" alt="circle_profile">
+                                                                }
+                                                            </div>
+                                                            <span>
+                                                                @nftDataAuction.NFTData.UniqueNumberOfMintedNFT in @nftDataAuction.NFTData.NFT.TotalNumberOfMintedNFT
+                                                            </span>
+                                                        </div>
+
+                                                    </div>
+                                                    <div class="card-footer bg_transparent">
+                                                        <div class="d-flex justify-content-between mb-2 font_size_12">
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </Template>
+                                    </RadzenDataList>
+                                </div>
+                                <RadzenPager Count="count" PageSize="@pageSize" PageNumbersCount="10" PageChanged='args => PageChanged(args, "Created")' />
+                            </div>
+                            <div class="@followingTabActive">
+                                <div class="row">
+                                    <RadzenDataList WrapItems="true" AllowPaging="false" Data="@followingUserSubList" TItem="UserProfileHeader">
+                                        <Template Context="followingUser">
+                                            <div class="col-md-6 col-lg-4 m-0 mb-3">
+                                                <div class="card shadow-sm collectors_card border-0 d-block" style="cursor: pointer;" @onclick="() => OnUserProfileCard(followingUser.UserName)">
+                                                    <div class="card-header bg_transparent border-0">
+                                                        <div class="user_profile">
+                                                            <div class="position-relative">
+
+                                                                @if (followingUser.UserPhoto != null)
+                                                                {
+                                                                    <img class="d-block w_h_160 rounded-circle mx-auto" style="border-radius: 50%;" src="data:image/gif;base64,@System.Convert.ToBase64String(followingUser.UserPhoto)" alt="circle_profile">
+                                                                }
+                                                                else
+                                                                {
+                                                                    <img class="d-block w_h_160 rounded-circle mx-auto" src="images/home/user.png" alt="circle_profile">
+                                                                }
+
+                                                            </div>
+                                                            <br>
+                                                        </div>
+                                                    </div>
+                                                    <div class="card-body px-0 border-bottom">
+                                                        <div class="d-flex justify-content-center">
+                                                            <h4>@followingUser.UserName</h4>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </Template>
+                                    </RadzenDataList>
+                                </div>
+                                <RadzenPager Count="count" PageSize="@pageSize" PageNumbersCount="10" PageChanged='args => PageChanged(args, "Following")' />
+                            </div>
+                        </div>
+
+                        <!-- Loading more content cards -->
+                        <div class="text-center my-3">
+                            <span class="spinner-border spinner-border-sm mx-2"></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+</main>
+
+@code {
+
+    int pageSize = 3;
+    int count;
+
+    UserProfileHeader objProfileHeaderSettings = new UserProfileHeader();
+    List<NFTData> nftDataList = new List<NFTData>();
+    List<UserProfileHeader> followingUserList = new List<UserProfileHeader>();
+    List<Auction> onSaleNftDataAuctionList = new List<Auction>();
+    List<Auction> createdNftDataAuctionList = new List<Auction>();
+
+    IEnumerable<Auction> onSaleNftDataAuctionSubList = new List<Auction>();
+    IEnumerable<Auction> createdNftDataAuctionSubList = new List<Auction>();
+    IEnumerable<UserProfileHeader> followingUserSubList = new List<UserProfileHeader>();
+
+    [Parameter]
+    public string Username { get; set; }
+
+    public string selected_account_addr { get; set; }
+    public string shortAddr { get; set; }
+    public Guid selfProfileheader_Id { get; set; }
+    public bool bFollow { get; set; }
+
+    string onSaleTabActive = "d-none";
+    string createdTabActive = "d-none";
+    string followingTabActive = "d-none";
+    string followersTabActive = "d-none";
+
+    protected override async Task OnInitializedAsync()
+    {
+        var userName = Username;
+        objProfileHeaderSettings = await Service.GetProfileHeaderByUsernameAsync(userName);
+        if (objProfileHeaderSettings == null)
+            NavigationManager.NavigateTo("notfoundprofile");
+    }
+
+    protected async override Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            selfProfileheader_Id = await localStore.GetItemAsync<Guid>("headerId");
+
+            await jsRuntime.InvokeVoidAsync("initialProfilePortfolioComponent");
+            nftDataList = await nftService.GetNFTDataByUserName(Username);
+
+            selected_account_addr = await localStore.GetItemAsync<string>("address");
+
+            ShowHideTab("onSaleTabActive");
+
+            onSaleNftDataAuctionList = await nftService.GetOnSaleNFTDataAuctionGroupByUserProfileHeaderID(objProfileHeaderSettings.Id, selfProfileheader_Id);
+
+            count = onSaleNftDataAuctionList.Count();
+            onSaleNftDataAuctionSubList = GetNftDataAuctionSubList(0, pageSize, "OnSale");
+
+            createdNftDataAuctionList = await nftService.GetCreatedNFTDataAuctionGroupByUserProfileHeaderID(objProfileHeaderSettings.Id, selfProfileheader_Id);
+
+            //createdNftData = await nftService.GetCreatedNFTDataByUserProfileHeaderID(objProfileHeaderSettings.Id);
+
+            followingUserList = await Service.GetFollowingUsersByProfileHeaderId(objProfileHeaderSettings.Id);
+            bFollow = await Service.GetResultOfFollow(objProfileHeaderSettings.Id, selfProfileheader_Id);
+
+            if (!string.IsNullOrEmpty(selected_account_addr))
+            {
+                shortAddr = selected_account_addr.Substring(0, 10) + "..." + selected_account_addr.Substring(38);
+            }
+
+            StateHasChanged();
+        }
+    }
+
+    private async void OnFollowUser()
+    {
+        if (string.IsNullOrEmpty(selected_account_addr)) { NavigationManager.NavigateTo("signin", true); return; }
+
+        var result = await Service.FollowUserProfile(objProfileHeaderSettings.Id, selfProfileheader_Id);
+        if (result == 1) {
+            ShowNotification(new NotificationMessage { Severity = NotificationSeverity.Info, Summary = "Following User", Detail = "Following " + objProfileHeaderSettings.UserName, Duration = 4000 });
+            bFollow = await Service.GetResultOfFollow(objProfileHeaderSettings.Id, selfProfileheader_Id);
+            StateHasChanged();
+        }
+        if (result == 0) ShowNotification(new NotificationMessage { Severity = NotificationSeverity.Error, Summary = "Following User", Detail = "You are already Following " + objProfileHeaderSettings.UserName, Duration = 4000 });
+        if (result == 2) ShowNotification(new NotificationMessage { Severity = NotificationSeverity.Error, Summary = "Following User", Detail = "You can't follow yourself.", Duration = 4000 });
+    }
+
+    private async void OnUnFollowUser()
+    {
+        var result = await Service.UnFollowUserProfile(objProfileHeaderSettings.Id, selfProfileheader_Id);
+        ShowNotification(new NotificationMessage { Severity = NotificationSeverity.Info, Summary = "UnFollowing User", Detail = "UnFollowing " + objProfileHeaderSettings.UserName, Duration = 4000 });
+        bFollow = await Service.GetResultOfFollow(objProfileHeaderSettings.Id, selfProfileheader_Id);
+        StateHasChanged();
+    }
+
+    private void ShowHideTab(string activeTabName)
+    {
+        onSaleTabActive = "d-none";
+        createdTabActive = "d-none";
+        followingTabActive = "d-none";
+        followersTabActive = "d-none";
+
+        if (activeTabName == "onSaleTabActive")
+        {
+            onSaleTabActive = "d-block";
+
+            count = onSaleNftDataAuctionList.Count();
+            onSaleNftDataAuctionSubList = GetNftDataAuctionSubList(0, pageSize, "Created");
+        }
+        else if (activeTabName == "createdTabActive")
+        {
+            createdTabActive = "d-block";
+
+            count = createdNftDataAuctionList.Count();
+            createdNftDataAuctionSubList = GetNftDataAuctionSubList(0, pageSize, "Created");
+        }
+        else if (activeTabName == "followingTabActive")
+        {
+            followingTabActive = "d-block";
+
+            count = followingUserList.Count();
+            followingUserSubList = GetFollowingSubList(0, pageSize, "Following");
+        }
+
+        StateHasChanged();
+    }
+
+    private void OnUserProfileCard(string userName)
+    {
+        NavigationManager.NavigateTo("/" + userName, true);
+    }
+
+    private async Task OnPlaceBid(Guid auctionId)
+    {
+        var auction = await auctionService.GetAuctionById(auctionId);
+        if (auction.IsAuctionOver) NavigationManager.NavigateTo("endedauction/" + auctionId);
+        else NavigationManager.NavigateTo("placebid/" + auctionId);
+
+        await auctionService.SaveRecentViewNFT(auction.NFTData.NFT.UserProfile.Id, auction.NFTDataId, auctionId);
+    }
+
+    private async Task OnAddLike(Guid NftDataId, Guid UserProfileHeaderId)
+    {
+        await activityService.SaveLikeNFTActivity(NftDataId, selfProfileheader_Id);
+        ShowNotification(new NotificationMessage { Severity = NotificationSeverity.Info, Summary = "Like NFT", Detail = "New NFT is added in Like list!", Duration = 4000 });
+    }
+
+    void ShowNotification(NotificationMessage message)
+    {
+        notificationService.Notify(message);
+    }
+
+    void PageChanged(PagerEventArgs args, string tabName)
+    {
+        if (tabName == "OnSale") onSaleNftDataAuctionSubList = GetNftDataAuctionSubList(args.Skip, args.Top, "OnSale");
+        else if (tabName == "Created") createdNftDataAuctionSubList = GetNftDataAuctionSubList(args.Skip, args.Top, "Created");
+        else if (tabName == "Following") followingUserSubList = GetFollowingSubList(args.Skip, args.Top, "Following");
+    }
+
+    IEnumerable<Auction> GetNftDataAuctionSubList(int skip, int take, string tabName)
+    {
+        if (tabName == "OnSale") return onSaleNftDataAuctionList.Skip(skip).Take(take).ToList();
+        else if (tabName == "Created") return createdNftDataAuctionList.Skip(skip).Take(take).ToList();
+
+        return null;
+    }
+
+    IEnumerable<UserProfileHeader> GetFollowingSubList(int skip, int take, string tabName)
+    {
+        if (tabName == "Following") return followingUserList.Skip(skip).Take(take).ToList();
+
+        return null;
+    }
+}
